@@ -10,12 +10,27 @@ import mongoose from "mongoose";
 export const createInviteService = async ({ email, role, workspaceId, invitedBy }) => {
     // 1. Prevent duplicate users
     const existingUser = await User.findOne({ email });
+    // if (existingUser) {
+    //     throw new Error("User already exists in system");
+    // }
     if (existingUser) {
-        throw new Error("User already exists in system");
+        if (existingUser.workspaceId?.toString() === workspaceId.toString()) {
+            throw new Error("User already in this workspace");
+        }
     }
 
     // 2. Generate token
     const { rawToken, hashedToken } = generateInviteToken();
+
+    const existingInvite = await Invite.findOne({
+        email,
+        workspaceId,
+        status: "PENDING",
+    });
+
+    if (existingInvite) {
+        throw new Error("Invite already sent to this user");
+    }
 
     // 3. Create invite
     const invite = await Invite.create({
@@ -65,8 +80,13 @@ export const acceptInviteService = async ({ token, name, password }) => {
 
         // 3. Check if user already exists (idempotency)
         let user = await User.findOne({ email }).session(session);
-
-        if (!user) {
+        if (user) {
+            // Attach to workspace instead of creating new user
+            user.workspaceId = invite.workspaceId;
+            user.role = invite.role;
+            await user.save({ session });
+        }
+        else {
             const salt = await bcrypt.genSalt(10);
             const passwordHash = await bcrypt.hash(password, salt);
 
@@ -102,6 +122,24 @@ export const acceptInviteService = async ({ token, name, password }) => {
         );
 
         // 5. Mark invite as accepted (idempotent)
+        if (invite.status === "ACCEPTED") {
+            // Return existing user instead of failing
+            const existingUser = await User.findOne({
+                email: invite.email,
+                workspaceId: invite.workspaceId,
+            });
+
+            return {
+                message: "Invite already accepted",
+                user: existingUser,
+            };
+        }
+
+        if (invite.expiresAt < Date.now()) {
+            invite.status = "EXPIRED";
+            await invite.save({ session });
+            throw new Error("Invite expired");
+        }
         invite.status = "ACCEPTED";
         await invite.save({ session });
 
