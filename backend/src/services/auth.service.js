@@ -53,6 +53,7 @@ export const registerService = async ({ name, email, password, workspaceName }) 
 export const loginService = async ({ email, password }) => {
     const user = await User.findOne({ email });
 
+
     if (!user) throw new Error("Invalid credentials");
 
     if (!user.isVerified) {
