@@ -6,6 +6,7 @@ import {
     removeUser,
     getOnlineUsers,
 } from "./presence.js";
+import channelModel from "../models/channel.model.js";
 
 import {
     startTyping,
@@ -66,6 +67,15 @@ export const initSocket = (server) => {
             } catch (err) {
                 socket.emit("error", err.message);
             }
+        });
+
+        socket.on("join_channel", async (channelId) => {
+            const channel = await channelModel.findById(channelId);
+
+            if (!channel.memberIds.includes(userId)) {
+                throw new Error("Not a member of channel");
+            }
+            socket.join(channelId);
         });
 
         socket.on("mark_read", async ({ messageId, channelId }) => {
