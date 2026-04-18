@@ -6,6 +6,7 @@ import {
     removeUser,
     getOnlineUsers,
 } from "./presence.js";
+import conversationModel from "../models/conversation.model.js";
 import channelModel from "../models/channel.model.js";
 
 import {
@@ -69,6 +70,10 @@ export const initSocket = (server) => {
             }
         });
 
+        socket.on("join_conversation", (conversationId) => {
+            socket.join(conversationId);
+        });
+
         socket.on("join_channel", async (channelId) => {
             const channel = await channelModel.findById(channelId);
 
@@ -76,6 +81,21 @@ export const initSocket = (server) => {
                 throw new Error("Not a member of channel");
             }
             socket.join(channelId);
+        });
+
+        socket.on("send_dm", async ({ conversationId, content }) => {
+            const convo = await conversationModel.findById(conversationId);
+
+            if (!convo.members.includes(userId)) {
+                throw new Error("Not part of conversation");
+            }
+            const message = await createMessageService({
+                conversationId,
+                senderId: socket.user.userId,
+                content,
+            });
+
+            io.to(conversationId).emit("receive_dm", message);
         });
 
         socket.on("mark_read", async ({ messageId, channelId }) => {
