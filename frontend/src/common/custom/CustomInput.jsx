@@ -4,17 +4,16 @@ import { BootstrapInput } from "./BootstrapInput";
 
 const CustomInput = ({ label, placeholder, name, formik, readOnly = false, type = "text", apiError = '' }) => {
     return (
-
         <FormControl variant="standard" fullWidth>
             {label && (
                 <InputLabel
                     shrink
                     htmlFor={name}
                     sx={{
-                        fontSize: "1.3rem",
-                        fontWeight: 450,
-                        color: "#757575",
-                        '&.Mui-focused': { color: '#757575' }
+                        fontSize: "1.1rem",
+                        fontWeight: 500,
+                        color: "#94A3B8",
+                        '&.Mui-focused': { color: '#A29BFE' }
                     }}
                 >
                     {label}
@@ -38,7 +37,6 @@ const CustomInput = ({ label, placeholder, name, formik, readOnly = false, type 
                 <FormHelperText error>{apiError}</FormHelperText>
             ) : null}
         </FormControl>
-
     );
 };
 

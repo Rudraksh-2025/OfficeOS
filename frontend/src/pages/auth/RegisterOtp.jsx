@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Stack, Typography, Button, Box, CircularProgress } from "@mui/material";
-import EmailSentIcon from '../../assets/images/icons.svg'
 import { useOtpRegister, useSendOtp } from '../../Api/Api'
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -207,93 +206,155 @@ const RegisterOtp = () => {
     }, [syncResendFromDeadline]);
 
     return (
-        <Box sx={containerStyle}>
-            <Box sx={cardStyle}>
-                <Stack spacing={3}>
-                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <img src={EmailSentIcon} alt="forgot password" style={{ width: "12%" }} />
-                    </Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>Confirmation Code</Typography>
+        <Box className="auth-container" sx={{ justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                px: 3,
+                py: 4,
+                position: 'relative',
+                zIndex: 1,
+            }}>
+                <Box className="auth-form-wrapper" sx={{ textAlign: 'center' }}>
+                    <Stack spacing={3}>
+                        {/* Icon */}
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            mb: 1,
+                        }}>
+                            <Box sx={{
+                                width: 72,
+                                height: 72,
+                                borderRadius: '20px',
+                                background: 'linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(162, 155, 254, 0.1))',
+                                border: '1px solid rgba(108, 92, 231, 0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '32px',
+                                animation: 'float 3s ease-in-out infinite',
+                            }}>
+                                ✉️
+                            </Box>
+                        </Box>
 
-                    <Typography sx={{ opacity: 0.7 }}>
-                        A 6-digit code has been sent to <br />  <b>{email}</b>
-                    </Typography>
+                        <Typography sx={{
+                            fontSize: '24px',
+                            fontWeight: 800,
+                            color: '#F1F5F9',
+                            letterSpacing: '-0.5px',
+                        }}>
+                            Confirmation Code
+                        </Typography>
 
-                    <Box display="flex" justifyContent="center" gap={1}>
-                        {otp.map((digit, i) => (
-                            <input
-                                key={i}
-                                id={`otp-${i}`}
-                                value={digit}
-                                maxLength={OTP_LEN}
-                                inputMode="numeric"
-                                autoComplete={i === 0 ? "one-time-code" : "off"}
-                                onChange={(e) => handleChange(e.target.value, i)}
-                                onPaste={(e) => handlePaste(e, i)}
-                                onKeyDown={(e) => handleBackspace(e, i)}
-                                style={otpStyle}
-                            />
-                        ))}
-                    </Box>
+                        <Typography sx={{ color: '#94A3B8', fontSize: '14px' }}>
+                            A 6-digit code has been sent to <br />
+                            <span style={{ color: '#A29BFE', fontWeight: 600 }}>{email}</span>
+                        </Typography>
 
-                    <Button disabled={isPending} sx={btnStyle} onClick={() => handleSubmit()}>
-                        {isPending ? <CircularProgress size={20} sx={{ color: 'white' }} /> : "Verify"}
-                    </Button>
-                </Stack>
+                        {/* OTP Inputs */}
+                        <Box display="flex" justifyContent="center" gap={1.5}>
+                            {otp.map((digit, i) => (
+                                <input
+                                    key={i}
+                                    id={`otp-${i}`}
+                                    value={digit}
+                                    maxLength={OTP_LEN}
+                                    inputMode="numeric"
+                                    autoComplete={i === 0 ? "one-time-code" : "off"}
+                                    onChange={(e) => handleChange(e.target.value, i)}
+                                    onPaste={(e) => handlePaste(e, i)}
+                                    onKeyDown={(e) => handleBackspace(e, i)}
+                                    style={{
+                                        width: '52px',
+                                        height: '56px',
+                                        borderRadius: '14px',
+                                        textAlign: 'center',
+                                        border: digit
+                                            ? '1.5px solid #6C5CE7'
+                                            : '1px solid rgba(255,255,255,0.10)',
+                                        background: digit
+                                            ? 'rgba(108, 92, 231, 0.08)'
+                                            : 'rgba(255, 255, 255, 0.04)',
+                                        color: '#F1F5F9',
+                                        fontSize: '22px',
+                                        fontWeight: 700,
+                                        fontFamily: '"Inter", sans-serif',
+                                        outline: 'none',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: digit ? '0 0 0 3px rgba(108, 92, 231, 0.1)' : 'none',
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = '#6C5CE7';
+                                        e.target.style.background = 'rgba(108, 92, 231, 0.08)';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(108, 92, 231, 0.1)';
+                                    }}
+                                    onBlur={(e) => {
+                                        if (!digit) {
+                                            e.target.style.borderColor = 'rgba(255,255,255,0.10)';
+                                            e.target.style.background = 'rgba(255, 255, 255, 0.04)';
+                                            e.target.style.boxShadow = 'none';
+                                        }
+                                    }}
+                                />
+                            ))}
+                        </Box>
 
-                <Typography sx={{ fontSize: "14px", opacity: 0.8, mt: 3 }}>
-                    Didn’t receive a code?{" "}
-                    {canResend ? (
-                        <span
-                            onClick={handleResend}
-                            style={{ color: "#22d3ee", cursor: "pointer", fontWeight: 600 }}
+                        <Button
+                            disabled={isPending}
+                            sx={{
+                                py: 1.5,
+                                borderRadius: "10px",
+                                background: "linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%)",
+                                color: "#fff",
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                textTransform: "none",
+                                boxShadow: '0 4px 20px rgba(108, 92, 231, 0.3)',
+                                transition: 'all 0.3s ease',
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, #5A4BD1 0%, #8B7EFC 100%)",
+                                    boxShadow: '0 6px 28px rgba(108, 92, 231, 0.4)',
+                                    transform: 'translateY(-1px)',
+                                },
+                                "&:disabled": {
+                                    background: 'rgba(108, 92, 231, 0.3)',
+                                    color: 'rgba(255,255,255,0.5)',
+                                },
+                            }}
+                            onClick={() => handleSubmit()}
                         >
-                            Resend
-                        </span>
-                    ) : (
-                        <span style={{ color: "#aaa" }}>
-                            Resend in {formatTime(timeLeft)}
-                        </span>
-                    )}
-                </Typography>
+                            {isPending ? <CircularProgress size={22} sx={{ color: 'white' }} /> : "Verify"}
+                        </Button>
+                    </Stack>
+
+                    <Typography sx={{ fontSize: "13px", color: '#94A3B8', mt: 3 }}>
+                        Didn't receive a code?{" "}
+                        {canResend ? (
+                            <span
+                                onClick={handleResend}
+                                style={{
+                                    color: "#A29BFE",
+                                    cursor: "pointer",
+                                    fontWeight: 700,
+                                    transition: 'color 0.2s ease',
+                                }}
+                            >
+                                Resend
+                            </span>
+                        ) : (
+                            <span style={{ color: "#64748B" }}>
+                                Resend in {formatTime(timeLeft)}
+                            </span>
+                        )}
+                    </Typography>
+                </Box>
             </Box>
         </Box>
-
     );
 };
-
-
-const containerStyle = {
-    height: "100vh",
-    padding: '20px',
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#1C2533",
-};
-
-const cardStyle = {
-    width: "100%",
-    maxWidth: "400px",
-    color: "#fff",
-    textAlign: "center",
-};
-const otpStyle = {
-    width: "45px",
-    height: "45px",
-    borderRadius: "50%",
-    textAlign: "center",
-    border: "none",
-};
-const btnStyle = {
-    py: 1,
-    borderRadius: "8px",
-    background: "var(--Blue)",
-    color: "#000",
-    fontWeight: 600,
-    textTransform: "none",
-    "&:hover": { background: "var(--Blue)" },
-}
-
 
 export default RegisterOtp;

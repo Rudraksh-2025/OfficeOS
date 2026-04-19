@@ -42,9 +42,9 @@ function App() {
     {
       path: "/home",
       element: (
-        <AuthGuard>
-          <Layout />
-        </AuthGuard>
+        // <AuthGuard> 
+        <Layout />
+        // </AuthGuard>
       ),
       children: [
         { path: "", element: <Home /> },

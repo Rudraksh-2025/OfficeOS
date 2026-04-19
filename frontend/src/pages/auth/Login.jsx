@@ -4,17 +4,18 @@ import { BootstrapInput } from "../../common/custom/BootstrapInput";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import CustomInput from '../../common/custom/CustomInput'
 import AppleIcon from "@mui/icons-material/Apple";
-import logo2 from "../../assets/images/icons.svg";
 import { useFormik } from "formik"
 import googleIcon from '../../assets/images/googleIcon.svg'
 import facebookIcon from '../../assets/images/facebookIcon.svg'
 import { useLogin } from '../../Api/Api'
 import { toast } from "react-toastify";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
+
 const generateDeviceId = () => {
     const id = Math.random().toString(36).substring(2) + Date.now();
     return id;
 };
+
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [apiError, setApiError] = useState("");
@@ -97,149 +98,260 @@ const Login = () => {
     const { mutate: login, isPending } = useLogin(onSuccess, onError)
 
     return (
-        <Box
-            sx={{
-                minHeight: "100vh",
-                background: "#1C2533",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+        <Box className="auth-container" sx={{ justifyContent: 'center', alignItems: 'center' }}>
+            {/* Left: Form */}
+            <Box sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
                 px: 3,
-            }}
-        >
-            <Box sx={{ width: "100%", maxWidth: 400, color: "#fff" }}>
-
-                {/* Logo */}
-                <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <img src={logo2} alt="logo" style={{ width: "50%" }} />
-                </Box>
-
-                {/* Heading */}
-                <Typography variant="h4" fontWeight={600} mb={1} mt={3}>
-                    Welcome Back
-                </Typography>
-
-                <Typography fontSize={'0.95rem'} sx={{ opacity: 0.7, mb: 3 }}>
-                    Welcome back! Please enter your details.
-                </Typography>
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    loginForm.handleSubmit(e);
-                }}>
-                    <Stack spacing={2}>
-                        {/* Email */}
-                        <CustomInput
-                            label="Email"
-                            placeholder="Enter your Email"
-                            type="email"
-                            name="email"
-                            formik={loginForm}
-                        />
-                        {/* Password */}
-                        <FormControl variant="standard" fullWidth sx={{ mb: 2, position: 'relative' }}>
-                            <InputLabel shrink htmlFor="password" sx={{ fontSize: '1.3rem', fontWeight: 500, color: '#757575', '&.Mui-focused': { color: '#757575' } }}>
-                                Password
-                            </InputLabel>
-                            <BootstrapInput
-                                id="password"
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Enter your password"
-                                value={loginForm.values.password}
-                                onChange={(e) => {
-                                    loginForm.handleChange(e);
-                                    setApiError(""); // ✅ clear API error
-                                }}
-                            />
-                            <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                                style={{
-                                    position: 'absolute',
-                                    right: 8,
-                                    top: '70%',
-                                    transform: 'translateY(-50%)',
-                                    padding: 0,
-                                    zIndex: 2
-                                }}
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <FaEye /> : <FaEyeSlash />}
-                            </IconButton>
-
-                        </FormControl>
-                        {loginForm.touched.password && loginForm.errors.password ? (
-                            <FormHelperText error>
-                                {loginForm.errors.password}
-                            </FormHelperText>
-                        ) : apiError ? (
-                            <FormHelperText error>
-                                {apiError}
-                            </FormHelperText>
-                        ) : null}
-
-                        {/* Forgot Password */}
-                        <Link component={LinkRouter} to="/forgot-password" underline="none" sx={{ color: "#2fd3c6", fontSize: 13, fontWeight: 600 }}>
-                            Forgot Password
-                        </Link>
-
-                        {/* Sign In */}
-                        <Button
-                            fullWidth
-                            disabled={isPending}
-                            type="submit"
-                            sx={{
-                                py: 1.5,
-                                borderRadius: "8px",
-                                background: "var(--Blue)",
-                                color: "#000",
-                                fontWeight: 600,
-                                textTransform: "none",
-                                "&:hover": { background: "var(--Blue)" },
-                            }}
-                        >
-                            {isPending ? <CircularProgress size={20} color="white" /> : 'Sign In'}
-                        </Button>
-
-                        <Divider sx={{ color: "#aaa" }}>OR</Divider>
-
-                        {/* Social buttons */}
-                        <Button
-                            fullWidth
-                            onClick={() => handleGoogleLogin()}
-                            startIcon={<img src={googleIcon} alt="Google Icon" />}
-                            sx={{ bgcolor: "#fff", color: "#000", fontWeight: 600 }}
-                        >
-                            Sign In with Google
-                        </Button>
-
-                        <Button
-                            fullWidth
-                            onClick={handleFacebookLogin}
-                            startIcon={<img src={facebookIcon} alt="facebookIcon" />}
-                            sx={{ bgcolor: "#fff", color: "#000", fontWeight: 600 }}
-                        >
-                            Continue with Facebook
-                        </Button>
-
-                        <Button
-                            fullWidth
-                            onClick={handleAppleLogin}
-                            startIcon={<AppleIcon />}
-                            sx={{ bgcolor: "#fff", color: "#000", fontWeight: 600 }}
-                        >
-                            Continue with Apple
-                        </Button>
-
-                        {/* Signup */}
-                        <Typography textAlign="center" sx={{ mt: 2, opacity: 0.8 }}>
-                            Don’t have an account?{" "}
-                            <Link component={LinkRouter} to="/sign-up" sx={{ color: "var(--Blue)", textDecoration: 'none' }}>
-                                Sign up
-                            </Link>
+                py: 4,
+                position: 'relative',
+                zIndex: 1,
+            }}>
+                <Box className="auth-form-wrapper">
+                    {/* Logo */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 5 }}>
+                        <Box sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 800,
+                            fontSize: 18,
+                            color: '#fff',
+                        }}>
+                            O
+                        </Box>
+                        <Typography sx={{
+                            fontSize: '22px',
+                            fontWeight: 700,
+                            color: '#F1F5F9',
+                            letterSpacing: '-0.5px',
+                        }}>
+                            OfficeOS
                         </Typography>
+                    </Box>
 
-                    </Stack>
-                </form>
+                    {/* Heading */}
+                    <Typography sx={{
+                        fontSize: '28px',
+                        fontWeight: 800,
+                        color: '#F1F5F9',
+                        letterSpacing: '-0.5px',
+                        mb: 0.5,
+                    }}>
+                        Welcome back
+                    </Typography>
+
+                    <Typography sx={{ fontSize: '14px', color: '#64748B', mb: 4 }}>
+                        Sign in to your workspace to continue.
+                    </Typography>
+
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        loginForm.handleSubmit(e);
+                    }}>
+                        <Stack spacing={2.5}>
+                            {/* Email */}
+                            <CustomInput
+                                label="Email"
+                                placeholder="Enter your email"
+                                type="email"
+                                name="email"
+                                formik={loginForm}
+                            />
+
+                            {/* Password */}
+                            <FormControl variant="standard" fullWidth sx={{ mb: 2, position: 'relative' }}>
+                                <InputLabel shrink htmlFor="password" sx={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 500,
+                                    color: '#94A3B8',
+                                    '&.Mui-focused': { color: '#A29BFE' }
+                                }}>
+                                    Password
+                                </InputLabel>
+                                <BootstrapInput
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={loginForm.values.password}
+                                    onChange={(e) => {
+                                        loginForm.handleChange(e);
+                                        setApiError("");
+                                    }}
+                                />
+                                <IconButton
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    sx={{
+                                        position: 'absolute',
+                                        right: 10,
+                                        top: '68%',
+                                        transform: 'translateY(-50%)',
+                                        padding: 0,
+                                        zIndex: 2,
+                                        color: '#64748B',
+                                        '&:hover': { color: '#A29BFE' },
+                                    }}
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <FaEye size={16} /> : <FaEyeSlash size={16} />}
+                                </IconButton>
+                            </FormControl>
+
+                            {loginForm.touched.password && loginForm.errors.password ? (
+                                <FormHelperText error>
+                                    {loginForm.errors.password}
+                                </FormHelperText>
+                            ) : apiError ? (
+                                <FormHelperText error>
+                                    {apiError}
+                                </FormHelperText>
+                            ) : null}
+
+                            {/* Forgot Password */}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <Link
+                                    component={LinkRouter}
+                                    to="/forgot-password"
+                                    underline="none"
+                                    sx={{
+                                        color: "#A29BFE",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        '&:hover': { color: '#6C5CE7' },
+                                    }}
+                                >
+                                    Forgot Password?
+                                </Link>
+                            </Box>
+
+                            {/* Sign In */}
+                            <Button
+                                fullWidth
+                                disabled={isPending}
+                                type="submit"
+                                sx={{
+                                    py: 1.5,
+                                    borderRadius: "10px",
+                                    background: "linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%)",
+                                    color: "#fff",
+                                    fontWeight: 700,
+                                    fontSize: '15px',
+                                    textTransform: "none",
+                                    boxShadow: '0 4px 20px rgba(108, 92, 231, 0.3)',
+                                    transition: 'all 0.3s ease',
+                                    "&:hover": {
+                                        background: "linear-gradient(135deg, #5A4BD1 0%, #8B7EFC 100%)",
+                                        boxShadow: '0 6px 28px rgba(108, 92, 231, 0.4)',
+                                        transform: 'translateY(-1px)',
+                                    },
+                                    "&:disabled": {
+                                        background: 'rgba(108, 92, 231, 0.3)',
+                                        color: 'rgba(255,255,255,0.5)',
+                                    },
+                                }}
+                            >
+                                {isPending ? <CircularProgress size={22} sx={{ color: 'white' }} /> : 'Sign In'}
+                            </Button>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, my: 0.5 }}>
+                                <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                                <Typography sx={{ color: '#64748B', fontSize: '12px', fontWeight: 500 }}>or continue with</Typography>
+                                <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                            </Box>
+
+                            {/* Social buttons */}
+                            <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                <Button
+                                    fullWidth
+                                    onClick={() => handleGoogleLogin()}
+                                    sx={{
+                                        py: 1.3,
+                                        borderRadius: '10px',
+                                        bgcolor: "rgba(255,255,255,0.04)",
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        color: "#F1F5F9",
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        textTransform: 'none',
+                                        transition: 'all 0.2s ease',
+                                        "&:hover": {
+                                            bgcolor: "rgba(255,255,255,0.08)",
+                                            borderColor: 'rgba(255,255,255,0.15)',
+                                        },
+                                    }}
+                                >
+                                    <img src={googleIcon} alt="Google" style={{ width: 18, marginRight: 8 }} />
+                                    Google
+                                </Button>
+                                <Button
+                                    fullWidth
+                                    onClick={handleFacebookLogin}
+                                    sx={{
+                                        py: 1.3,
+                                        borderRadius: '10px',
+                                        bgcolor: "rgba(255,255,255,0.04)",
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        color: "#F1F5F9",
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        textTransform: 'none',
+                                        transition: 'all 0.2s ease',
+                                        "&:hover": {
+                                            bgcolor: "rgba(255,255,255,0.08)",
+                                            borderColor: 'rgba(255,255,255,0.15)',
+                                        },
+                                    }}
+                                >
+                                    <img src={facebookIcon} alt="Facebook" style={{ width: 18, marginRight: 8 }} />
+                                    Facebook
+                                </Button>
+                                <Button
+                                    fullWidth
+                                    onClick={handleAppleLogin}
+                                    sx={{
+                                        py: 1.3,
+                                        borderRadius: '10px',
+                                        bgcolor: "rgba(255,255,255,0.04)",
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        color: "#F1F5F9",
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        textTransform: 'none',
+                                        transition: 'all 0.2s ease',
+                                        "&:hover": {
+                                            bgcolor: "rgba(255,255,255,0.08)",
+                                            borderColor: 'rgba(255,255,255,0.15)',
+                                        },
+                                    }}
+                                >
+                                    <AppleIcon sx={{ fontSize: 20, mr: 0.5 }} />
+                                    Apple
+                                </Button>
+                            </Box>
+
+                            {/* Signup */}
+                            <Typography textAlign="center" sx={{ mt: 2, color: '#64748B', fontSize: '14px' }}>
+                                Don't have an account?{" "}
+                                <Link component={LinkRouter} to="/sign-up" sx={{
+                                    color: "#A29BFE",
+                                    textDecoration: 'none',
+                                    fontWeight: 600,
+                                    '&:hover': { color: '#6C5CE7' },
+                                }}>
+                                    Sign up
+                                </Link>
+                            </Typography>
+                        </Stack>
+                    </form>
+                </Box>
             </Box>
         </Box>
     );

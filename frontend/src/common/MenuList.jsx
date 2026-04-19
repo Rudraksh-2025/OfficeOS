@@ -1,80 +1,102 @@
 import {
     HomeOutlined,
-    UploadOutlined,
-    AppstoreOutlined,
-    PictureOutlined,
     UserOutlined,
     SettingOutlined,
     LogoutOutlined,
 } from "@ant-design/icons";
-
-const icons = {
-    HomeOutlined,
-    UploadOutlined,
-    AppstoreOutlined,
-    PictureOutlined,
-    UserOutlined,
-    SettingOutlined,
-    LogoutOutlined,
-};
+import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
+import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 
 export const menulist = [
     {
-        section: "HOME",
+        section: "OVERVIEW",
         items: [
             {
                 id: "home",
-                name: "User Home",
+                name: "Dashboard",
                 path: "/home",
-                icon: icons.HomeOutlined,
+                icon: HomeOutlined,
+            },
+            {
+                id: "analytics",
+                name: "Analytics",
+                path: "/home/analytics",
+                icon: InsightsOutlinedIcon,
             },
         ],
     },
 
     {
-        section: "FIND MYSELF",
+        section: "COLLABORATE",
         items: [
             {
-                id: "find",
-                name: "Find Your Photos",
-                path: "/home/find",
-                icon: icons.UploadOutlined,
+                id: "messaging",
+                name: "Messaging",
+                path: "/home/messaging",
+                icon: ChatBubbleOutlineOutlinedIcon,
+                badge: 5,
             },
             {
-                id: "results",
-                name: "Past Identified Photos",
-                path: "/home/results",
-                icon: icons.PictureOutlined,
+                id: "meetings",
+                name: "Meetings",
+                path: "/home/meetings",
+                icon: VideocamOutlinedIcon,
+            },
+            {
+                id: "tasks",
+                name: "Tasks & Projects",
+                path: "/home/tasks",
+                icon: AssignmentOutlinedIcon,
+                badge: 3,
+            },
+            {
+                id: "documents",
+                name: "Documents",
+                path: "/home/documents",
+                icon: FolderOutlinedIcon,
             },
         ],
     },
 
     {
-        section: "MANAGEMENT",
+        section: "PEOPLE",
         items: [
             {
-                id: "categories",
-                name: "Categories",
-                path: "/home/categories",
-                icon: icons.AppstoreOutlined,
+                id: "hr",
+                name: "HR Management",
+                path: "/home/hr",
+                icon: BadgeOutlinedIcon,
+            },
+            {
+                id: "team",
+                name: "Team Directory",
+                path: "/home/team",
+                icon: GroupsOutlinedIcon,
+            },
+            {
+                id: "calendar",
+                name: "Calendar",
+                path: "/home/calendar",
+                icon: EventNoteOutlinedIcon,
             },
         ],
     },
 
     {
-        section: "ACCOUNT",
+        section: "AI",
         items: [
             {
-                id: "profile",
-                name: "My Profile",
-                path: "/home/profile",
-                icon: icons.UserOutlined,
-            },
-            {
-                id: "settings",
-                name: "Settings",
-                path: "/home/settings",
-                icon: icons.SettingOutlined,
+                id: "ai-assistant",
+                name: "AI Assistant",
+                path: "/home/ai-assistant",
+                icon: SmartToyOutlinedIcon,
             },
         ],
     },
@@ -83,10 +105,22 @@ export const menulist = [
         section: "",
         items: [
             {
+                id: "profile",
+                name: "My Profile",
+                path: "/home/profile",
+                icon: UserOutlined,
+            },
+            {
+                id: "settings",
+                name: "Settings",
+                path: "/home/settings",
+                icon: SettingOutlined,
+            },
+            {
                 id: "logout",
                 name: "Logout",
                 path: "/logout",
-                icon: icons.LogoutOutlined,
+                icon: LogoutOutlined,
             },
         ],
     },

@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { Toolbar, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-const drawerWidth = 340;
+const drawerWidth = 280;
 
 function Layout() {
     const [isActive, setActive] = useState(false);
@@ -30,7 +30,7 @@ function Layout() {
     }, [isActive]);
 
     return (
-        <div style={{ display: "flex", background: "#0b1220", minHeight: "100vh" }}>
+        <div style={{ display: "flex", background: "var(--bg-deep)", minHeight: "100vh" }}>
             {/* Sidebar */}
             <Sidebar
                 setActive={setActive}
@@ -43,15 +43,16 @@ function Layout() {
                 style={{
                     flexGrow: 1,
                     width: isMdUp ? `calc(100% - ${drawerWidth}px)` : "100%",
-                    background: "#0b1220", // 🔥 dark background
+                    background: "var(--bg-deep)",
                 }}
             >
                 <Navbar setActive={setActive} isActive={isActive} />
-                <Toolbar /> {/* Push content below AppBar height */}
+                <Toolbar sx={{ minHeight: '68px !important' }} />
                 <div
                     style={{
                         overflowX: "hidden",
-                        minHeight: "calc(100vh - 64px)",
+                        minHeight: "calc(100vh - 68px)",
+                        padding: isMdUp ? '24px' : '16px',
                     }}
                 >
                     <Outlet />

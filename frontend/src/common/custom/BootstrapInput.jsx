@@ -1,51 +1,38 @@
 import InputBase from '@mui/material/InputBase';
-import { alpha, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 export const BootstrapInput = styled(InputBase)(({ theme }) => ({
     'label + &': {
-        marginTop: '30px',
+        marginTop: '28px',
     },
     position: "relative",
     '& .MuiInputBase-input': {
-        borderRadius: 4,
+        borderRadius: 10,
         position: 'relative',
-        backgroundColor: 'white',
-        border: '1px solid',
-        borderColor: '#E0E3E7',
-        fontSize: 16,
-        // width: 'auto',
-        padding: '12px 12px',
-        transition: theme.transitions.create([
-            'border-color',
-            'background-color',
-            'box-shadow',
-        ]),
-        fontFamily: [
-            '"Montserrat"',
-            '-apple-system',
-            'BlinkMacSystemFont',
-            '"Segoe UI"',
-            'Roboto',
-            '"Helvetica Neue"',
-            'Arial',
-            'sans-serif',
-            '"Apple Color Emoji"',
-            '"Segoe UI Emoji"',
-            '"Segoe UI Symbol"',
-        ].join(','),
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid rgba(255, 255, 255, 0.10)',
+        fontSize: 14,
+        padding: '12px 14px',
+        color: '#F1F5F9',
+        transition: 'all 0.2s ease',
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        '&::placeholder': {
+            color: '#64748B',
+            opacity: 1,
+        },
         '&:focus': {
-            boxShadow: '#E0E3E7',
-            borderColor: '#E0E3E7',
+            borderColor: '#6C5CE7',
+            backgroundColor: 'rgba(108, 92, 231, 0.06)',
+            boxShadow: '0 0 0 3px rgba(108, 92, 231, 0.1)',
             outline: 'none',
         },
-        '&:disabled': {
-            color: '#000', // Black text when disabled
-            WebkitTextFillColor: '#000', // For Safari
-            backgroundColor: '#F3F6F9',
+        '&:hover': {
+            borderColor: 'rgba(108, 92, 231, 0.4)',
         },
-        ...theme.applyStyles('dark', {
-            backgroundColor: '#1A2027',
-            borderColor: '#2D3843',
-        }),
+        '&:disabled': {
+            color: '#64748B',
+            WebkitTextFillColor: '#64748B',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        },
     },
 }));
