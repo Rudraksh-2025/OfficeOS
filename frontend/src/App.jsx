@@ -13,7 +13,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to="/sign-in" replace />,
+      element: <Navigate to="/home" replace />,
     },
     {
       path: "/sign-in",
@@ -60,7 +60,7 @@ function App() {
     },
     {
       path: "*",
-      element: <Navigate to="/sign-in" replace />,
+      element: <Navigate to="/home" replace />,
     },
   ], {
     basename: basePath,
