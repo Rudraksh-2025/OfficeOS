@@ -3,7 +3,7 @@ import {
     getChannelsService,
     joinChannelService,
     addMemberService,
-} from "../services/channel.service";
+} from "../services/channel.service.js";
 
 export const createChannel = async (req, res) => {
     try {

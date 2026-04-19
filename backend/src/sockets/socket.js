@@ -5,7 +5,7 @@ import {
     addUser,
     removeUser,
     getOnlineUsers,
-} from "./presence.js";
+} from "./presense.js";
 import conversationModel from "../models/conversation.model.js";
 import channelModel from "../models/channel.model.js";
 

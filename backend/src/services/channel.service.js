@@ -1,4 +1,4 @@
-import Channel from "../models/channel.model";
+import Channel from "../models/channel.model.js";
 
 export const createChannelService = async ({
     name,

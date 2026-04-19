@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import authRoutes from './src/routes/auth.route.js'
 import inviteRoutes from './src/routes/invite.routes.js'
+import channelRoutes from './src/routes/channel.route.js'
+import conversationRoutes from './src/routes/conversation.route.js'
+import messageRoutes from './src/routes/message.route.js'
 
 const app = express();
 
@@ -13,6 +16,10 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/invites", inviteRoutes);
+app.use("/api/channel", channelRoutes);
+app.use("/api/conversation", conversationRoutes);
+app.use("/api/messages", messageRoutes)
+
 app.get("/", (req, res) => {
     res.send("Hello World!");
 })

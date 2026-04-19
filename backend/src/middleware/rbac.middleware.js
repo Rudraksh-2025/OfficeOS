@@ -1,4 +1,4 @@
-import { ROLE_PERMISSIONS } from "../constants/rolePermissions";
+import { ROLE_PERMISSIONS } from "../constants/rolePermissions.js";
 
 export const authorize = (...requiredPermissions) => {
     return (req, res, next) => {

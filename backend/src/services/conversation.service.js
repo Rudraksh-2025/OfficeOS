@@ -1,4 +1,4 @@
-import Conversation from "../models/conversation.model";
+import Conversation from "../models/conversation.model.js";
 
 export const getOrCreateDMService = async ({
     userId,
