@@ -7,16 +7,23 @@ import { AuthGuard, LogGuard } from "./common/Gaurd";
 import './App.css'
 import Register from "./pages/auth/Register";
 import RegisterOtp from "./pages/auth/RegisterOtp";
+import PageNotFound from "./pages/PageNotFound";
+import CheckEmail from "./pages/auth/CheckEmail";
+import VerifyEmailReminder from "./pages/auth/VerifyEmailReminder";
+import ForgotPassword from "./pages/auth/forgotPassword/ForgotPassword";
 function App() {
   const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") || "/";
 
   const router = createBrowserRouter([
     {
-      path: "/",
-      element: <Navigate to="/home" replace />,
+      path: "/check-email",
+      element: (
+        <LogGuard>
+          <CheckEmail />
+        </LogGuard >)
     },
     {
-      path: "/sign-in",
+      path: "/",
       element: (
         <LogGuard>
           <Login />
@@ -32,7 +39,7 @@ function App() {
       ),
     },
     {
-      path: "/verification",
+      path: "/verify-email",
       element: (
         <LogGuard>
           <RegisterOtp />
@@ -40,27 +47,43 @@ function App() {
       ),
     },
     {
+      path: "/resend-email",
+      element: (
+        <LogGuard>
+          <VerifyEmailReminder />
+        </LogGuard>
+      ),
+    },
+    {
+      path: "/forgot-password",
+      element: (
+        <LogGuard>
+          <ForgotPassword />
+        </LogGuard>
+      ),
+    },
+    {
       path: "/home",
       element: (
-        // <AuthGuard> 
-        <Layout />
-        // </AuthGuard>
+        <AuthGuard>
+          <Layout />
+        </AuthGuard>
       ),
       children: [
         { path: "", element: <Home /> },
         // {
         //   path: "find",
         //   children: [
-        //     { path: "", element: <FindMyself /> },
-        //     { path: "result", element: <ResultScreen /> },
-        //     { path: "album/:id", element: <AlbumDetail /> }
+        //     {path: "", element: <FindMyself /> },
+        //     {path: "result", element: <ResultScreen /> },
+        //     {path: "album/:id", element: <AlbumDetail /> }
         //   ],
         // },
       ]
     },
     {
       path: "*",
-      element: <Navigate to="/home" replace />,
+      element: <PageNotFound />,
     },
   ], {
     basename: basePath,

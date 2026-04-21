@@ -7,40 +7,53 @@ import apiClient from "./ApiClient";
 export const useLogin = (onSuccess, onError) => {
     return useMutation({
         mutationFn: async (credentials) => {
-            const response = await apiClient.post('/users/login', credentials);
+            const response = await apiClient.post('/auth/login', credentials);
             return response.data;
         },
         onSuccess,
         onError,
     });
 };
-// Register admin
-export const useCreateAdmin = (onSuccess, onError) => {
+// Register
+export const useRegister = (onSuccess, onError) => {
     return useMutation({
         mutationFn: async (data) => {
-            const response = await apiClient.post('/users/signup', data);
+            const response = await apiClient.post('/auth/register', data);
             return response.data;
         },
         onSuccess,
         onError,
     });
 };
-// Send Email Verificaiton otp
-export const useSendOtp = (onSuccess, onError) => {
+// Forgot Password
+export const useForgotPassword = (onSuccess, onError) => {
     return useMutation({
         mutationFn: async (data) => {
-            const response = await apiClient.post('/otp/generate', data);
+            const response = await apiClient.post('/auth/forgot-password', data);
             return response.data;
         },
         onSuccess,
         onError,
     });
 };
-// Verify Email Verificaiton otp
-export const useOtpRegister = (onSuccess, onError) => {
+
+// Verify Otp
+export const useVerifyOtp = (onSuccess, onError) => {
     return useMutation({
         mutationFn: async (data) => {
-            const response = await apiClient.post('/otp/verify', data);
+            const response = await apiClient.post('/auth/verify-otp', data);
+            return response.data;
+        },
+        onSuccess,
+        onError,
+    });
+};
+
+// Reset Password
+export const useResetPassword = (onSuccess, onError) => {
+    return useMutation({
+        mutationFn: async (data) => {
+            const response = await apiClient.post('/auth/reset-password', data);
             return response.data;
         },
         onSuccess,

@@ -32,14 +32,13 @@ apiClient.interceptors.response.use(
         else if (
             error.response &&
             error.response.data &&
-            error.response.data.code === 401 &&
-            !window.location.pathname.includes('/sign-in')
+            error.response.data.code === 401
         ) {
             // Clear auth data
             localStorage.removeItem("accessToken");
             localStorage.removeItem("role");
             // Redirect to login page only if not already there
-            window.location.href = "/user-portal/sign-in";
+            window.location.href = "/";
         }
 
         return Promise.reject(error);

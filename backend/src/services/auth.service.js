@@ -8,6 +8,9 @@ import { sendEmail } from "../utils/sendMail.js";
 const generateSlug = (name) =>
     name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
 
+const generateOtp = () =>
+    Math.floor(100000 + Math.random() * 900000).toString();
+
 export const registerService = async ({ name, email, password, workspaceName }) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new Error("User already exists");
@@ -85,4 +88,90 @@ export const verifyEmailService = async (token) => {
     await user.save();
 
     return { message: "Email verified successfully" };
+};
+
+export const resendVerificationService = async (email) => {
+    const user = await User.findOne({ email });
+
+    if (!user) throw new Error("User not found");
+    if (user.isVerified) throw new Error("User already verified");
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
+
+    await user.save();
+
+    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+
+    await sendEmail(
+        email,
+        "Verify your OfficeOS account",
+        `<h3>Click to verify:</h3><a href="${verifyUrl}">${verifyUrl}</a>`
+    );
+
+    return { message: "Verification email resent" };
+
+};
+
+export const forgotPasswordService = async (email) => {
+    const user = await User.findOne({ email });
+
+    if (!user) throw new Error("User not found");
+
+    const otp = generateOtp();
+
+    user.resetOtp = otp;
+    user.resetOtpExpires = Date.now() + 1000 * 60 * 10;
+
+    await user.save();
+
+    await sendEmail(
+        email,
+        "Password Reset OTP",
+        `<h3>Your OTP is: ${otp}</h3>`
+    );
+
+    return { message: "OTP sent to email" };
+};
+
+export const verifyOtpService = async ({ email, otp }) => {
+    const user = await User.findOne({
+        email,
+        resetOtp: otp,
+        resetOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        throw new Error("Invalid or expired OTP");
+    }
+
+    return { message: "OTP verified" };
+};
+
+export const resetPasswordService = async ({
+    email,
+    otp,
+    newPassword,
+}) => {
+    const user = await User.findOne({
+        email,
+        resetOtp: otp,
+        resetOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        throw new Error("Invalid or expired OTP");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+
+    user.resetOtp = undefined;
+    user.resetOtpExpires = undefined;
+
+    await user.save();
+
+    return { message: "Password reset successful" };
 };

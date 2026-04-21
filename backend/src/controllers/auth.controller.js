@@ -1,4 +1,4 @@
-import { registerService, loginService } from "../services/auth.service.js";
+import { registerService, loginService, verifyEmailService, resendVerificationService, forgotPasswordService, verifyOtpService, resetPasswordService } from "../services/auth.service.js";
 
 export const register = async (req, res) => {
     try {
@@ -40,6 +40,57 @@ export const verifyEmail = async (req, res) => {
         const { token } = req.query;
 
         const data = await verifyEmailService(token);
+
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const resendVerification = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const data = await resendVerificationService(email)
+        res.status(200).json(data);
+
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const data = await forgotPasswordService(email);
+
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        const data = await verifyOtpService({ email, otp });
+
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        const data = await resetPasswordService({
+            email,
+            otp,
+            newPassword,
+        });
 
         res.status(200).json(data);
     } catch (error) {

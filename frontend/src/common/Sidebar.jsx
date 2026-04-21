@@ -38,7 +38,7 @@ const Sidebar = ({ isActive, setActive, sidebarRef }) => {
 
     const handleLogout = () => {
         localStorage.clear();
-        nav("/sign-in");
+        nav("/");
     };
 
     const drawerContent = (

@@ -15,7 +15,7 @@ import AppleIcon from "@mui/icons-material/Apple";
 import { useFormik } from "formik";
 import googleIcon from "../../assets/images/googleIcon.svg";
 import facebookIcon from "../../assets/images/facebookIcon.svg";
-import { useCreateAdmin, useSendOtp } from "../../Api/Api";
+import { useRegister } from "../../Api/Api";
 import { toast } from "react-toastify";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
 
@@ -26,71 +26,33 @@ const Register = () => {
 
     const formik = useFormik({
         initialValues: {
-            full_name: "",
+            name: "",
             email: "",
             password: "",
-            surname: "",
-            user_type: 1,
+            workspaceName: "",
         },
         onSubmit: (values) => {
             if (!checked) {
                 toast.error("Please accept terms");
                 return;
             }
-            console.log(values)
             mutate(values)
         },
     });
 
 
-    const BASE_URL = import.meta.env.VITE_REACT_APP_API_BASE_URL;
-
-
-    const handleGoogleLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/google?role=user`;
-        } catch (err) {
-            console.error("Google login error:", err);
-        }
-    };
-
-    const handleFacebookLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/facebook?role=user`;
-        } catch (err) {
-            console.error("Facebook login error:", err);
-        }
-    };
-
-    const handleAppleLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/apple?role=user`;
-        } catch (err) {
-            console.error("Apple login error:", err);
-        }
-    };
-
 
     const onSuccess = (res) => {
-        toast.success("Admin created successfully")
-        sendOtp({ email: formik.values.email })
+        toast.success("Verification email sent");
+        navigate("/check-email", {
+            state: { email: formik.values.email }
+        });
     }
     const onError = (error) => {
-        toast.error(error.message)
-        console.log(error)
+        toast.error(error)
     }
-    const { mutate, isPending } = useCreateAdmin(onSuccess, onError)
+    const { mutate, isPending } = useRegister(onSuccess, onError)
 
-    const onSendOtpSuccess = () => {
-        navigate('/verification', { state: { email: formik.values.email } })
-        toast.success("OTP sent successfully")
-    }
-    const onSendOtpError = (error) => {
-        toast.error(error.message)
-        console.log(error)
-    }
-
-    const { mutate: sendOtp } = useSendOtp(onSendOtpSuccess, onSendOtpError)
 
     return (
         <Box className="auth-container" sx={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -149,10 +111,7 @@ const Register = () => {
                     {/* Form */}
                     <form onSubmit={formik.handleSubmit}>
                         <Stack spacing={2.5}>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <CustomInput label="First Name *" name="full_name" placeholder={"Enter your name"} formik={formik} />
-                                <CustomInput label="Surname *" name="surname" placeholder={"Enter your surname"} formik={formik} />
-                            </Box>
+                            <CustomInput label="Name *" name="name" placeholder={"Enter your name"} formik={formik} />
                             <CustomInput label="Email *" name="email" placeholder={"Enter your email"} formik={formik} />
 
                             {/* Password */}
@@ -191,11 +150,11 @@ const Register = () => {
                                 </IconButton>
                                 {formik.touched.password && <FormHelperText error>{formik.errors.password}</FormHelperText>}
                             </FormControl>
-
                             {/* Password hint */}
-                            <Typography fontSize={12} sx={{ color: '#64748B' }}>
+                            <Typography sx={{ color: '#64748B', fontSize: '0.8rem' }}>
                                 Must be at least 8 characters.
                             </Typography>
+                            <CustomInput label="WorkPlace Name *" name="workspaceName" placeholder={"Enter your workplace name"} formik={formik} />
 
                             {/* Checkbox */}
                             <FormControlLabel
@@ -210,7 +169,7 @@ const Register = () => {
                                     />
                                 }
                                 label={
-                                    <Typography fontSize={12} sx={{ color: '#94A3B8' }}>
+                                    <Typography sx={{ color: '#94A3B8', fontSize: '0.9rem' }}>
                                         I accept the{" "}
                                         <span style={{ color: "#A29BFE", fontWeight: 600, cursor: 'pointer' }}>
                                             Privacy Policy
@@ -229,7 +188,7 @@ const Register = () => {
                                     '&.Mui-checked': { color: '#6C5CE7' },
                                 }} />}
                                 label={
-                                    <Typography fontSize={12} sx={{ color: '#94A3B8' }}>
+                                    <Typography sx={{ color: '#94A3B8', fontSize: '0.9rem' }}>
                                         I consent to processing my data
                                     </Typography>
                                 }
@@ -276,7 +235,7 @@ const Register = () => {
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
                                 <Button
                                     fullWidth
-                                    onClick={() => handleGoogleLogin()}
+                                    // onClick={() => handleGoogleLogin()}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -298,7 +257,7 @@ const Register = () => {
                                 </Button>
                                 <Button
                                     fullWidth
-                                    onClick={handleFacebookLogin}
+                                    // onClick={handleFacebookLogin}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -320,7 +279,7 @@ const Register = () => {
                                 </Button>
                                 <Button
                                     fullWidth
-                                    onClick={handleAppleLogin}
+                                    // onClick={handleAppleLogin}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -343,9 +302,9 @@ const Register = () => {
                             </Box>
 
                             {/* Footer */}
-                            <Typography textAlign="center" sx={{ color: '#64748B', fontSize: '14px' }}>
+                            <Typography sx={{ color: '#64748B', fontSize: '14px', textAlign: "center" }}>
                                 Already have an account?{" "}
-                                <Link component={LinkRouter} to="/sign-in" sx={{
+                                <Link component={LinkRouter} to="/" sx={{
                                     color: "#A29BFE",
                                     textDecoration: 'none',
                                     fontWeight: 600,

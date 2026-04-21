@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workspace",
     },
+    resetOtp: String,
+    resetOtpExpires: Date,
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

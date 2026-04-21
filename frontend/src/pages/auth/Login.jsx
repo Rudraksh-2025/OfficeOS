@@ -11,55 +11,15 @@ import { useLogin } from '../../Api/Api'
 import { toast } from "react-toastify";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
 
-const generateDeviceId = () => {
-    const id = Math.random().toString(36).substring(2) + Date.now();
-    return id;
-};
-
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [apiError, setApiError] = useState("");
     const navigate = useNavigate()
 
-    const deviceId = generateDeviceId();
-
-    const BASE_URL = import.meta.env.VITE_REACT_APP_API_BASE_URL;
-
-
-    const handleGoogleLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/google?role=user&device_type=WEB&device_id=${deviceId}`;
-        } catch (err) {
-            console.error("Google login error:", err);
-            setApiError("Failed to initiate Google login");
-        }
-    };
-
-    const handleFacebookLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/facebook?role=user&device_type=WEB&device_id=${deviceId}`;
-        } catch (err) {
-            console.error("Facebook login error:", err);
-            setApiError("Failed to initiate Facebook login");
-        }
-    };
-
-    const handleAppleLogin = () => {
-        try {
-            window.location.href = `${BASE_URL}/auth/apple?role=user&device_type=WEB&device_id=${deviceId}`;
-        } catch (err) {
-            console.error("Apple login error:", err);
-            setApiError("Failed to initiate Apple login");
-        }
-    };
-
     const loginForm = useFormik({
         initialValues: {
             email: "",
             password: "",
-            role: 'user',
-            device_type: "WEB",
-            device_id: generateDeviceId(),
         },
         onSubmit: (values) => {
             console.log("Submitting:", values);
@@ -69,31 +29,17 @@ const Login = () => {
     });
     const onSuccess = (res) => {
         const user = res?.data?.user;
-        const needsEmailVerification = user?.email_verified === false;
 
         localStorage.setItem("accessToken", res?.data?.authToken?.access?.token);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("userId", user?.id);
-
-        if (needsEmailVerification) {
-            toast.success("Login successful — verify your email to continue");
-            navigate("/verification", {
-                state: { email: user?.email, fromLogin: true },
-            });
-            return;
-        }
 
         toast.success("Login Successfully");
         navigate("/home");
     };
     const onError = (error) => {
         const message = error?.response?.data?.message || "Login failed";
-        if (message.toLowerCase().includes("role")) {
-            setApiError("Please login with User account");
-        }
-        else {
-            setApiError(message);
-        }
+        setApiError(message);
     };
     const { mutate: login, isPending } = useLogin(onSuccess, onError)
 
@@ -216,7 +162,20 @@ const Login = () => {
                             ) : null}
 
                             {/* Forgot Password */}
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Link
+                                    component={LinkRouter}
+                                    to="/resend-email"
+                                    underline="none"
+                                    sx={{
+                                        color: "#A29BFE",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        '&:hover': { color: '#6C5CE7' },
+                                    }}
+                                >
+                                    Verify Email
+                                </Link>
                                 <Link
                                     component={LinkRouter}
                                     to="/forgot-password"
@@ -230,6 +189,9 @@ const Login = () => {
                                 >
                                     Forgot Password?
                                 </Link>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+
                             </Box>
 
                             {/* Sign In */}
@@ -271,7 +233,7 @@ const Login = () => {
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
                                 <Button
                                     fullWidth
-                                    onClick={() => handleGoogleLogin()}
+                                    // onClick={() => handleGoogleLogin()}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -293,7 +255,7 @@ const Login = () => {
                                 </Button>
                                 <Button
                                     fullWidth
-                                    onClick={handleFacebookLogin}
+                                    // onClick={handleFacebookLogin}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -315,7 +277,7 @@ const Login = () => {
                                 </Button>
                                 <Button
                                     fullWidth
-                                    onClick={handleAppleLogin}
+                                    // onClick={handleAppleLogin}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -338,7 +300,7 @@ const Login = () => {
                             </Box>
 
                             {/* Signup */}
-                            <Typography textAlign="center" sx={{ mt: 2, color: '#64748B', fontSize: '14px' }}>
+                            <Typography sx={{ mt: 2, color: '#64748B', textAlign: "center", fontSize: '14px' }}>
                                 Don't have an account?{" "}
                                 <Link component={LinkRouter} to="/sign-up" sx={{
                                     color: "#A29BFE",
