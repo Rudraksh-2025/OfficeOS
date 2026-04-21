@@ -39,7 +39,7 @@ import { Navigate } from "react-router-dom"
 // };
 
 export const AuthGuard = ({ children }) => {
-    const auth = localStorage.getItem("accessToken")
+    const auth = localStorage.getItem("token")
 
     if (auth) {
         return children
@@ -51,7 +51,7 @@ export const AuthGuard = ({ children }) => {
 }
 
 export const LogGuard = ({ children }) => {
-    const auth = localStorage.getItem("accessToken")
+    const auth = localStorage.getItem("token")
 
     if (!auth) {
         return children
@@ -64,7 +64,7 @@ export const LogGuard = ({ children }) => {
 
 
 // export const PermissionGuard = ({ children, requiredKey }) => {
-//     const auth = localStorage.getItem("accessToken");
+//     const auth = localStorage.getItem("token");
 //     const { allowedKeys } = useAuth();
 
 //     if (!auth) return <Navigate to="/" replace />;

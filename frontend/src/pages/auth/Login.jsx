@@ -29,9 +29,9 @@ const Login = () => {
     const onSuccess = (res) => {
         const user = res?.data?.user;
 
-        localStorage.setItem("accessToken", res?.data?.authToken?.access?.token);
+        localStorage.setItem("token", res?.data?.authToken?.access?.token);
         localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("userId", user?.id);
+        localStorage.setItem("userId", user?._id);
 
         toast.success("Login Successfully");
         navigate("/home");
@@ -41,7 +41,21 @@ const Login = () => {
         setApiError(message);
     };
     const { mutate: login, isPending } = useLogin(onSuccess, onError);
-    const { mutate: socialLoginMutate, isPending: socialPending } = useSocialLogin(onSuccess, onError);
+
+    const onSocialSuccess = (res) => {
+        localStorage.setItem("token", res?.token);
+        localStorage.setItem("user", JSON.stringify(res?.user));
+        localStorage.setItem("userId", res?.user?._id);
+        toast.success("Login Successfully");
+        navigate("/home");
+    };
+
+    const onSocialError = (error) => {
+        console.log(error)
+        const message = error?.response?.data?.message || "Google login failed";
+        setApiError(message);
+    };
+    const { mutate: socialLoginMutate, isPending: socialPending } = useSocialLogin(onSocialSuccess, onSocialError);
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: tokenResponse => {

@@ -11,10 +11,8 @@ import {
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { BootstrapInput } from "../../common/custom/BootstrapInput";
 import CustomInput from "../../common/custom/CustomInput";
-import AppleIcon from "@mui/icons-material/Apple";
 import { useFormik } from "formik";
 import googleIcon from "../../assets/images/googleIcon.svg";
-import facebookIcon from "../../assets/images/facebookIcon.svg";
 import { useRegister, useSocialLogin } from "../../Api/Api";
 import { toast } from "react-toastify";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
@@ -54,7 +52,19 @@ const Register = () => {
     }
     const { mutate, isPending } = useRegister(onSuccess, onError)
 
-    const { mutate: socialLoginMutate, isPending: socialPending } = useSocialLogin(onSuccess, onError);
+    const onSocialSuccess = (res) => {
+        toast.success("Login successful");
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res?.user));
+        localStorage.setItem("userId", res?.user?._id);
+        navigate("/home");
+    };
+
+    const onSocialError = (error) => {
+        toast.error(error?.response?.data?.message || "Social login failed");
+    };
+
+    const { mutate: socialLoginMutate, isPending: socialPending } = useSocialLogin(onSocialSuccess, onSocialError);
 
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: tokenResponse => {

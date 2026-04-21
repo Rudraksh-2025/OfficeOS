@@ -6,9 +6,9 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
     config => {
-        const accessToken = localStorage.getItem('accessToken');
-        if (accessToken) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
@@ -24,7 +24,7 @@ apiClient.interceptors.response.use(
             const errorMessage = response.data.message || response.data || '';
             // if (errorMessage?.toLowerCase().includes('account is already logged in on another device.')) {
             //     console.error('User logged in on another device');
-            //     localStorage.removeItem("accessToken");
+            //     localStorage.removeItem("token");
             //     localStorage.removeItem("refreshToken");
             //     window.location.href = "/";
             // }
@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
             error.response.data.code === 401
         ) {
             // Clear auth data
-            localStorage.removeItem("accessToken");
+            localStorage.removeItem("token");
             localStorage.removeItem("role");
             // Redirect to login page only if not already there
             window.location.href = "/";
