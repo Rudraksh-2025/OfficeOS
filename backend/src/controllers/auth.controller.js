@@ -73,7 +73,6 @@ export const forgotPassword = async (req, res) => {
 export const verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
-
         const data = await verifyOtpService({ email, otp });
 
         res.status(200).json(data);

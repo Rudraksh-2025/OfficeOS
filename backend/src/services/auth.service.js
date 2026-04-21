@@ -139,7 +139,7 @@ export const forgotPasswordService = async (email) => {
 export const verifyOtpService = async ({ email, otp }) => {
     const user = await User.findOne({
         email,
-        resetOtp: otp,
+        resetOtp: otp?.toString(),
         resetOtpExpires: { $gt: Date.now() },
     });
 
