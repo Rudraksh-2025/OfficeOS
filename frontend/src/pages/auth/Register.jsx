@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { BootstrapInput } from "../../common/custom/BootstrapInput";
+import { registerSchema } from '../../common/FormValidations'
 import CustomInput from "../../common/custom/CustomInput";
 import { useFormik } from "formik";
 import googleIcon from "../../assets/images/googleIcon.svg";
@@ -30,6 +31,7 @@ const Register = () => {
             password: "",
             workspaceName: "",
         },
+        validationSchema: registerSchema,
         onSubmit: (values) => {
             if (!checked) {
                 toast.error("Please accept terms");
