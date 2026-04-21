@@ -2,7 +2,7 @@ import { Box, Typography, Button } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const CheckEmail = () => {
     const location = useLocation();

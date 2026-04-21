@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import MarkEmailUnreadIcon from "@mui/icons-material/MarkEmailUnread";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useFormik } from "formik";
 import axios from "axios";
 import { Stack } from "@mui/material";

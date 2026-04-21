@@ -14,7 +14,7 @@ import CustomInput from "../../common/custom/CustomInput";
 import { useFormik } from "formik";
 import googleIcon from "../../assets/images/googleIcon.svg";
 import { useRegister, useSocialLogin } from "../../Api/Api";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
 import { useGoogleLogin } from '@react-oauth/google';
 

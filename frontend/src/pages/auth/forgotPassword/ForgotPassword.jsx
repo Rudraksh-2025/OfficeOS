@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useForgotPassword, useVerifyOtp, useResetPassword } from "../../../Api/Api";
 import { BootstrapInput } from "../../../common/custom/BootstrapInput";
 
