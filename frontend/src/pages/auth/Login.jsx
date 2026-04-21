@@ -3,13 +3,12 @@ import { Box, Typography, Button, Stack, Link, Divider, InputLabel, IconButton, 
 import { BootstrapInput } from "../../common/custom/BootstrapInput";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import CustomInput from '../../common/custom/CustomInput'
-import AppleIcon from "@mui/icons-material/Apple";
 import { useFormik } from "formik"
 import googleIcon from '../../assets/images/googleIcon.svg'
-import facebookIcon from '../../assets/images/facebookIcon.svg'
-import { useLogin } from '../../Api/Api'
+import { useLogin, useSocialLogin } from '../../Api/Api'
 import { toast } from "react-toastify";
 import { useNavigate, Link as LinkRouter } from "react-router-dom";
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +40,15 @@ const Login = () => {
         const message = error?.response?.data?.message || "Login failed";
         setApiError(message);
     };
-    const { mutate: login, isPending } = useLogin(onSuccess, onError)
+    const { mutate: login, isPending } = useLogin(onSuccess, onError);
+    const { mutate: socialLoginMutate, isPending: socialPending } = useSocialLogin(onSuccess, onError);
+
+    const handleGoogleLogin = useGoogleLogin({
+        onSuccess: tokenResponse => {
+            socialLoginMutate({ provider: 'google', token: tokenResponse.access_token });
+        },
+        onError: () => setApiError("Google Login Failed"),
+    });
 
     return (
         <Box className="auth-container" sx={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -233,7 +240,8 @@ const Login = () => {
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
                                 <Button
                                     fullWidth
-                                    // onClick={() => handleGoogleLogin()}
+                                    onClick={() => handleGoogleLogin()}
+                                    disabled={socialPending}
                                     sx={{
                                         py: 1.3,
                                         borderRadius: '10px',
@@ -253,50 +261,7 @@ const Login = () => {
                                     <img src={googleIcon} alt="Google" style={{ width: 18, marginRight: 8 }} />
                                     Google
                                 </Button>
-                                <Button
-                                    fullWidth
-                                    // onClick={handleFacebookLogin}
-                                    sx={{
-                                        py: 1.3,
-                                        borderRadius: '10px',
-                                        bgcolor: "rgba(255,255,255,0.04)",
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: "#F1F5F9",
-                                        fontWeight: 600,
-                                        fontSize: '13px',
-                                        textTransform: 'none',
-                                        transition: 'all 0.2s ease',
-                                        "&:hover": {
-                                            bgcolor: "rgba(255,255,255,0.08)",
-                                            borderColor: 'rgba(255,255,255,0.15)',
-                                        },
-                                    }}
-                                >
-                                    <img src={facebookIcon} alt="Facebook" style={{ width: 18, marginRight: 8 }} />
-                                    Facebook
-                                </Button>
-                                <Button
-                                    fullWidth
-                                    // onClick={handleAppleLogin}
-                                    sx={{
-                                        py: 1.3,
-                                        borderRadius: '10px',
-                                        bgcolor: "rgba(255,255,255,0.04)",
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: "#F1F5F9",
-                                        fontWeight: 600,
-                                        fontSize: '13px',
-                                        textTransform: 'none',
-                                        transition: 'all 0.2s ease',
-                                        "&:hover": {
-                                            bgcolor: "rgba(255,255,255,0.08)",
-                                            borderColor: 'rgba(255,255,255,0.15)',
-                                        },
-                                    }}
-                                >
-                                    <AppleIcon sx={{ fontSize: 20, mr: 0.5 }} />
-                                    Apple
-                                </Button>
+
                             </Box>
 
                             {/* Signup */}

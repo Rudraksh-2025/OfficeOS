@@ -1,4 +1,4 @@
-import { registerService, loginService, verifyEmailService, resendVerificationService, forgotPasswordService, verifyOtpService, resetPasswordService } from "../services/auth.service.js";
+import { registerService, loginService, verifyEmailService, resendVerificationService, forgotPasswordService, verifyOtpService, resetPasswordService, socialLoginService } from "../services/auth.service.js";
 
 export const register = async (req, res) => {
     try {
@@ -94,5 +94,20 @@ export const resetPassword = async (req, res) => {
         res.status(200).json(data);
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+};
+
+export const socialLogin = async (req, res) => {
+    try {
+        const { provider, token } = req.body;
+
+        const data = await socialLoginService({ provider, token });
+
+        res.status(200).json({
+            message: "Social login successful",
+            ...data,
+        });
+    } catch (error) {
+        res.status(401).json({ message: error.message });
     }
 };

@@ -175,3 +175,57 @@ export const resetPasswordService = async ({
 
     return { message: "Password reset successful" };
 };
+
+export const socialLoginService = async ({ provider, token }) => {
+    let email = null;
+    let name = null;
+
+    if (provider === 'google') {
+        const axios = (await import('axios')).default;
+        try {
+            const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            email = data.email;
+            name = data.name;
+        } catch (error) {
+            throw new Error("Invalid Google token");
+        }
+    } else {
+        throw new Error("Unsupported provider");
+    }
+
+    if (!email) {
+        throw new Error("Failed to get email from provider");
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+        const workspaceName = `${name}'s Workspace`;
+        const workspace = await workplaceModel.create({
+            name: workspaceName,
+            slug: generateSlug(workspaceName),
+        });
+
+        const salt = await bcrypt.genSalt(10);
+        const randomPassword = crypto.randomBytes(16).toString('hex');
+        const passwordHash = await bcrypt.hash(randomPassword, salt);
+
+        user = await User.create({
+            name,
+            email,
+            passwordHash,
+            role: "ADMIN",
+            workspaceId: workspace._id,
+            isVerified: true,
+        });
+
+        workspace.ownerId = user._id;
+        workspace.memberIds = [user._id];
+        await workspace.save();
+    }
+
+    const authToken = generateToken(user);
+    return { user, token: authToken };
+};

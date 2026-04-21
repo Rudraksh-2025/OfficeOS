@@ -60,3 +60,15 @@ export const useResetPassword = (onSuccess, onError) => {
         onError,
     });
 };
+
+// Social Login
+export const useSocialLogin = (onSuccess, onError) => {
+    return useMutation({
+        mutationFn: async (data) => {
+            const response = await apiClient.post('/auth/social-login', data);
+            return response.data;
+        },
+        onSuccess,
+        onError,
+    });
+};
