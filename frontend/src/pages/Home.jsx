@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Avatar, AvatarGroup, LinearProgress,
-    IconButton, Chip, Tooltip, Button
+    IconButton, Chip, Tooltip, Button, Drawer, TextField, Paper
 } from '@mui/material';
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import SendIcon from '@mui/icons-material/Send';
+import { io } from 'socket.io-client';
+import { useGetMessages } from '../Api/Api';
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
@@ -263,6 +267,82 @@ const Home = () => {
 
     const toggleTask = (id) => {
         setCheckedTasks(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    // --- Chat State ---
+    const [chatOpen, setChatOpen] = useState(false);
+    const [activeChat, setActiveChat] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState("");
+    const socketRef = useRef(null);
+    const messagesEndRef = useRef(null);
+    const mockChannelId = "general-demo-socket"; // for demo
+
+    const { data: pastMessages } = useGetMessages(activeChat?.channelId);
+
+    useEffect(() => {
+        if (pastMessages) {
+            setMessages(pastMessages);
+        }
+    }, [pastMessages]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token && chatOpen) {
+            let baseUrl = import.meta.env.VITE_BASEURL || "http://localhost:3003";
+            if (baseUrl.endsWith('/api')) {
+                baseUrl = baseUrl.slice(0, -4);
+            }
+            socketRef.current = io(baseUrl, {
+                auth: { token }
+            });
+
+            if (activeChat?.channelId) {
+                socketRef.current.emit("join_channel", activeChat.channelId);
+            }
+
+            socketRef.current.on("receive_message", (msg) => {
+                setMessages((prev) => [...prev, msg]);
+            });
+
+            socketRef.current.on("receive_dm", (msg) => {
+                setMessages((prev) => [...prev, msg]);
+            });
+
+            return () => {
+                socketRef.current?.disconnect();
+            };
+        }
+    }, [chatOpen, activeChat?.channelId]);
+
+    const handleSendMessage = () => {
+        if (newMessage.trim() === "" || !socketRef.current) return;
+        
+        const content = newMessage;
+        setNewMessage("");
+
+        socketRef.current.emit("send_message", {
+            channelId: activeChat?.channelId || mockChannelId,
+            content: content
+        });
+        
+        // Optimistic UI update
+        const tempMsg = {
+            _id: Date.now().toString(),
+            content: content,
+            senderId: { _id: user?._id || user?.id, name: user?.full_name || 'Me' },
+            createdAt: new Date().toISOString()
+        };
+        setMessages((prev) => [...prev, tempMsg]);
+    };
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, chatOpen]);
+
+    const openChat = (member) => {
+        setActiveChat({ ...member, channelId: mockChannelId });
+        setChatOpen(true);
     };
 
     return (
@@ -642,7 +722,7 @@ const Home = () => {
                                     </Typography>
                                 </Box>
                                 <Tooltip title="Send message">
-                                    <IconButton size="small" sx={{
+                                    <IconButton size="small" onClick={() => openChat(member)} sx={{
                                         color: '#64748B',
                                         '&:hover': { color: '#6C5CE7', background: 'rgba(108, 92, 231, 0.08)' },
                                     }}>
@@ -746,6 +826,120 @@ const Home = () => {
                     </Box>
                 </Card>
             </Box>
+
+            {/* ── Chat Drawer ── */}
+            <Drawer
+                anchor="right"
+                open={chatOpen}
+                onClose={() => setChatOpen(false)}
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        width: { xs: '100%', sm: 400 },
+                        background: 'var(--bg-elevated)',
+                        borderLeft: '1px solid var(--border-subtle)',
+                    }
+                }}
+            >
+                {activeChat && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        {/* Header */}
+                        <Box sx={{
+                            p: 2,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-card)'
+                        }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Avatar sx={{ width: 40, height: 40, background: `${activeChat.color}25`, color: activeChat.color, fontWeight: 700 }}>
+                                    {activeChat.avatar}
+                                </Avatar>
+                                <Box>
+                                    <Typography sx={{ fontSize: '15px', fontWeight: 600, color: '#F1F5F9' }}>
+                                        {activeChat.name}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '12px', color: '#22C55E' }}>
+                                        {activeChat.status || 'Online'}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                            <IconButton onClick={() => setChatOpen(false)} sx={{ color: '#94A3B8' }}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+
+                        {/* Messages Area */}
+                        <Box sx={{ flex: 1, p: 2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {messages.map((msg, idx) => {
+                                const isMe = msg.senderId?._id === (user?._id || user?.id) || msg.senderId?.name === user?.full_name || msg.senderId?.name === 'Me';
+                                return (
+                                    <Box key={msg._id || idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexDirection: isMe ? 'row-reverse' : 'row' }}>
+                                            <Avatar sx={{ width: 24, height: 24, fontSize: '10px' }}>
+                                                {msg.senderId?.name?.[0] || 'U'}
+                                            </Avatar>
+                                            <Typography sx={{ fontSize: '11px', color: '#64748B' }}>
+                                                {msg.senderId?.name || 'User'} • {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                            </Typography>
+                                        </Box>
+                                        <Paper sx={{
+                                            p: 1.5,
+                                            borderRadius: isMe ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+                                            background: isMe ? '#6C5CE7' : 'var(--bg-card)',
+                                            color: '#FFF',
+                                            maxWidth: '85%',
+                                            border: isMe ? 'none' : '1px solid var(--border-subtle)',
+                                        }}>
+                                            <Typography sx={{ fontSize: '14px' }}>{msg.content}</Typography>
+                                        </Paper>
+                                    </Box>
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
+                        </Box>
+
+                        {/* Input Area */}
+                        <Box sx={{ p: 2, borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    placeholder="Type a message..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                    size="small"
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            background: 'var(--bg-elevated)',
+                                            borderRadius: '20px',
+                                            color: '#F1F5F9',
+                                            '& fieldset': { borderColor: 'var(--border-subtle)' },
+                                            '&:hover fieldset': { borderColor: '#6C5CE7' },
+                                            '&.Mui-focused fieldset': { borderColor: '#6C5CE7' },
+                                        }
+                                    }}
+                                />
+                                <IconButton
+                                    onClick={handleSendMessage}
+                                    sx={{
+                                        background: '#6C5CE7', color: '#FFF',
+                                        '&:hover': { background: '#5B4BC4' }
+                                    }}
+                                >
+                                    <SendIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        </Box>
+                    </Box>
+                )}
+            </Drawer>
         </Box>
     );
 };

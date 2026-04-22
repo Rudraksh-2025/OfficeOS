@@ -1,6 +1,7 @@
 import Login from "./pages/auth/Login";
 import Layout from "./common/Layout";
 import Home from "./pages/Home";
+import Message from "./pages/messaging/Message";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthGuard, LogGuard } from "./common/Gaurd";
@@ -71,6 +72,7 @@ function App() {
       ),
       children: [
         { path: "", element: <Home /> },
+        { path: "messages", element: <Message /> },
         // {
         //   path: "find",
         //   children: [
