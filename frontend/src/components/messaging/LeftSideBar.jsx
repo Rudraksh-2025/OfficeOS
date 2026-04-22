@@ -11,6 +11,9 @@ const SidebarContainer = styled(Box)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     paddingRight: theme.spacing(2),
+    [theme.breakpoints.down('sm')]: {
+        padding: '20px 10px',
+    }
 }));
 const IconBtnItem = styled(IconButton)(({ theme }) => ({
     border: '1px solid #3F3F46',

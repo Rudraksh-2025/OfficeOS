@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import {
-    Box, Typography, Avatar, IconButton, InputBase, Button,
+    Box, Typography, Avatar, IconButton, InputBase, Button, Drawer
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-
+import MenuIcon from '@mui/icons-material/Menu';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
@@ -74,8 +74,9 @@ const MessageBubble = styled(Box)(({ theme }) => ({
 }));
 
 
-const RightSide = () => {
+const RightSide = ({ isMobile, toggleDrawer }) => {
     // const [tabValue, setTabValue] = useState(0);
+
     return (
         <>
             <ChatArea>
@@ -84,12 +85,19 @@ const RightSide = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    px: 3,
+                    px: { xs: 0, md: 3 },
                     borderBottom: '1px solid #3F3F46',
                     minHeight: '70px',
                     position: 'relative'
                 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '25%' }}>
+                        {isMobile && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
+                                <IconButton onClick={toggleDrawer} sx={{ color: '#fff' }}>
+                                    <MenuIcon />
+                                </IconButton>
+                            </Box>
+                        )}
                         <Avatar sx={{ width: 36, height: 36, mr: 1.5, bgcolor: '#fff' }}>📝</Avatar>
                         <Typography sx={{ fontSize: '18px', fontWeight: 600, color: '#FFF' }}>Notes</Typography>
                         <IconButton size="small" sx={{ ml: 0.5, color: '#A1A1AA' }}>

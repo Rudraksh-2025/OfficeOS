@@ -72,7 +72,7 @@ function App() {
       ),
       children: [
         { path: "", element: <Home /> },
-        { path: "messages", element: <Message /> },
+        { path: "messaging", element: <Message /> },
         // {
         //   path: "find",
         //   children: [
