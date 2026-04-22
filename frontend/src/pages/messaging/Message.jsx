@@ -1,29 +1,33 @@
-import {
-    Box, IconButton, Drawer
-} from '@mui/material';
-
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Box, Drawer } from '@mui/material';
 import LeftSideBar from '../../components/messaging/LeftSideBar';
 import RightSide from '../../components/messaging/RightSide';
+import { initSocket, disconnectSocket } from '../../services/socket';
 
 const Message = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
     const [open, setOpen] = useState(false);
+    const [currentChannel, setCurrentChannel] = useState(null);
+
+    useEffect(() => {
+        initSocket();
+        // optionally disconnect here if not needed globally
+        // return () => { disconnectSocket(); }; 
+    }, []);
 
     const toggleDrawer = () => {
         setOpen(!open);
     };
+
     return (
         <Box sx={{
             display: 'flex',
             height: 'calc(100vh - 100px)',
             color: '#F1F5F9'
         }}>
-
             {isMobile && (
                 <Drawer
                     anchor="left"
@@ -33,11 +37,11 @@ const Message = () => {
                         sx: { width: 250 }
                     }}
                 >
-                    <LeftSideBar />
+                    <LeftSideBar currentChannel={currentChannel} setCurrentChannel={setCurrentChannel} toggleDrawer={toggleDrawer} isMobile={isMobile} />
                 </Drawer>
             )}
-            {!isMobile && <LeftSideBar />}
-            <RightSide isMobile={isMobile} toggleDrawer={toggleDrawer} />
+            {!isMobile && <LeftSideBar currentChannel={currentChannel} setCurrentChannel={setCurrentChannel} />}
+            <RightSide isMobile={isMobile} toggleDrawer={toggleDrawer} currentChannel={currentChannel} />
         </Box>
     );
 };
