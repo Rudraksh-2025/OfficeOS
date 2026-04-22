@@ -1,15 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import FilterListIcon from '@mui/icons-material/FilterList';
 import {
-    Box, Typography, Avatar, Badge, IconButton
+    Box, Typography, Avatar, Badge, IconButton, Menu, MenuItem, Divider
 } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { styled } from '@mui/material/styles';
 import { joinChannel, leaveChannel } from "../../services/socket";
-import { useGetChannel } from "../../Api/Api";
+import { useGetChannel, useGetConversation } from "../../Api/Api";
+import { useQueryClient } from "@tanstack/react-query";
+import { CreateChannelModal, CreateGroupModal, CreateDmModal } from "./CreateModals";
 
 const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
-    const { data: channels = [], isLoading } = useGetChannel();
+    const { data: channels = [] } = useGetChannel();
+    const { data: conversations = [] } = useGetConversation(); // Will likely need this based on API structure
+    const queryClient = useQueryClient();
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [createType, setCreateType] = useState(null); // 'CHANNEL', 'GROUP', 'DM'
+
     useEffect(() => {
         if (!currentChannel) return;
 
@@ -20,6 +28,21 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
         };
     }, [currentChannel]);
 
+    const handleCreateClick = (event) => setAnchorEl(event.currentTarget);
+    const handleCloseMenu = () => setAnchorEl(null);
+
+    const handleOpenModal = (type) => {
+        setCreateType(type);
+        handleCloseMenu();
+    };
+
+    const handleSuccess = () => {
+        queryClient.invalidateQueries({ queryKey: ['getChanel'] });
+        queryClient.invalidateQueries({ queryKey: ['getConversation'] });
+    };
+
+    const allChats = [...(Array.isArray(channels) ? channels : []), ...(Array.isArray(conversations) ? conversations : [])];
+
     return (
         <SidebarContainer>
             {/* Header */}
@@ -27,31 +50,50 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
                 <Typography variant="h5" sx={{ fontWeight: 700, ml: 1 }}>Chat</Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <IconBtnItem size="small"><FilterListIcon fontSize="small" /></IconBtnItem>
-                    <IconBtnItem size="small"><EditOutlinedIcon fontSize="small" /></IconBtnItem>
+                    <IconBtnItem size="small" onClick={handleCreateClick}><EditOutlinedIcon fontSize="small" /></IconBtnItem>
                 </Box>
             </Box>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+                PaperProps={{ sx: { bgcolor: '#27272A', color: '#fff', border: '1px solid #3F3F46' } }}
+            >
+                <MenuItem onClick={() => handleOpenModal('DM')}>New Direct Message</MenuItem>
+                <MenuItem onClick={() => handleOpenModal('GROUP')}>New Group</MenuItem>
+                <Divider sx={{ bgcolor: '#3F3F46' }} />
+                <MenuItem onClick={() => handleOpenModal('CHANNEL')}>Create Channel</MenuItem>
+            </Menu>
+
+            <CreateChannelModal open={createType === 'CHANNEL'} onClose={() => setCreateType(null)} onSuccess={handleSuccess} />
+            <CreateGroupModal open={createType === 'GROUP'} onClose={() => setCreateType(null)} onSuccess={handleSuccess} />
+            <CreateDmModal open={createType === 'DM'} onClose={() => setCreateType(null)} onSuccess={handleSuccess} />
 
             {/* Lists Area */}
             <Box sx={{ flexGrow: 1, overflowY: 'auto' }} className="custom-scroll">
                 <Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        {channels.map((channel) => {
-                            const isActive = currentChannel?._id === channel._id;
+                        {allChats.map((chat) => {
+                            const isActive = currentChannel?._id === chat._id;
+                            const name = chat.name || "Direct Message";
 
                             return (
                                 <ChatListItem
-                                    key={channel._id}
+                                    key={chat._id}
                                     active={isActive}
-                                    onClick={() => setCurrentChannel(channel)}
+                                    onClick={() => setCurrentChannel(chat)}
                                 >
-                                    <Avatar>
-                                        {channel.name?.[0]?.toUpperCase()}
+                                    <Avatar sx={{ bgcolor: chat.type === 'PUBLIC' || chat.type === 'PRIVATE' ? '#6366F1' : '#3F3F46' }}>
+                                        {name?.[0]?.toUpperCase() || 'U'}
                                     </Avatar>
 
-                                    <Box sx={{ ml: 2 }}>
-                                        <Typography>{channel.name}</Typography>
-                                        <Typography sx={{ fontSize: 12 }}>
-                                            {channel.lastMessage?.content || "No messages"}
+                                    <Box sx={{ ml: 2, overflow: 'hidden' }}>
+                                        <Typography sx={{ fontWeight: isActive ? 700 : 500, color: isActive ? '#FFF' : '#E4E4E7', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                            {name}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 12, color: '#A1A1AA', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                            {chat.lastMessage?.content || "No messages"}
                                         </Typography>
                                     </Box>
                                 </ChatListItem>
@@ -101,13 +143,3 @@ const ChatListItem = styled(Box)(({ active }) => ({
         backgroundColor: '#27272A',
     }
 }));
-
-/* ─── Mock Data ─── */
-const recentChats = [
-    { id: 1, name: 'John Stark', preview: 'Hey there how are you?...', time: '12:44 pm', avatar: 'JS', active: false },
-    { id: 2, name: 'Tony Stark', preview: 'I will be There', time: '11:56 am', avatar: 'TS', hasIndicator: true, unread: true },
-    { id: 3, name: 'Side Chick', preview: 'I wanna do it with thor', time: '11:03 am', avatar: 'SC' },
-    { id: 4, name: 'Avengers Team', preview: 'Hulk: Good Morning', time: '10:33 am', avatar: 'AT' },
-    { id: 5, name: 'Dragon', preview: 'KA', time: '10:32 am', avatar: 'D', isOnline: true },
-    { id: 6, name: 'Arya Stark', preview: 'Where is my dragon?', time: '10:28 am', avatar: 'AS', isOffline: true },
-];

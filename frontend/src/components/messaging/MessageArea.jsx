@@ -21,7 +21,7 @@ const MessageList = ({ channelId }) => {
                     (old = { pages: [] }) => {
                         // Assuming pagination wrapper (Infinite Query)
                         if (!old || !old.pages) return old;
-                        
+
                         // We will mutate the first page
                         const firstPage = old.pages[0];
                         if (firstPage && firstPage.results) {
@@ -52,26 +52,6 @@ const MessageList = ({ channelId }) => {
     return null;
 };
 
-const mockMessages = [
-    {
-        id: 1,
-        content: <>Hello there</>,
-        time: '2 April 11:07 am',
-        edited: true,
-    },
-    {
-        id: 2,
-        content: <>How Are you?</>,
-        time: '7 April 10:37 am',
-        edited: true,
-    },
-    {
-        id: 3,
-        content: <>I am fine</>,
-        time: '7 April 4:58 pm'
-    },
-];
-
 const MessageArea = ({ channelId }) => {
     // Note: useGetMessages was created in Api.jsx
     const { data: messagesData, isLoading } = useGetMessages(channelId, { enabled: !!channelId });
@@ -98,14 +78,14 @@ const MessageArea = ({ channelId }) => {
     }
 
     // fallback for empty display
-    const finalMessages = messages.length > 0 ? messages : mockMessages;
+    const finalMessages = messages.length > 0 ? messages : [];
 
     return (
         <>
             <MessageList channelId={channelId} />
-            <Box 
+            <Box
                 ref={scrollRef}
-                sx={{ flexGrow: 1, overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }} 
+                sx={{ flexGrow: 1, overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}
                 className="custom-scroll"
             >
                 {finalMessages.map((msg, i) => (
