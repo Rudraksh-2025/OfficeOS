@@ -47,7 +47,7 @@ export const initSocket = (server) => {
         // Send message
         socket.on("send_message", async (data) => {
             try {
-                const { channelId, content } = data;
+                const { channelId, content, tempId } = data;
 
                 // Save first
                 const message = await createMessageService({
@@ -56,8 +56,10 @@ export const initSocket = (server) => {
                     content,
                 });
 
+                const populatedMessage = await message.populate("senderId", "name email");
+
                 // Emit to channel
-                io.to(channelId).emit("receive_message", message);
+                io.to(channelId).emit("receive_message", { ...populatedMessage.toJSON(), tempId });
 
             } catch (err) {
                 socket.emit("error", err.message);
@@ -69,13 +71,22 @@ export const initSocket = (server) => {
         });
 
         socket.on("join_channel", async (channelId) => {
-            const channel = await channelModel.findById(channelId);
+            let channel = await channelModel.findById(channelId);
 
-            if (!channel) return;
+            if (!channel) {
+                // Check if it's a conversation
+                const convo = await conversationModel.findById(channelId);
+                if (!convo) return;
+                
+                if (!convo.members.some(id => id.toString() === userId)) {
+                    return socket.emit("error", "Not a member of conversation");
+                }
+                return socket.join(channelId);
+            }
 
             // 🔥 KEY FIX
             if (channel.type === "PRIVATE") {
-                if (!channel.memberIds.includes(userId)) {
+                if (!channel.memberIds.some(id => id.toString() === userId)) {
                     return socket.emit("error", "Not a member of private channel");
                 }
             }
@@ -84,10 +95,14 @@ export const initSocket = (server) => {
             socket.join(channelId);
         });
 
+        socket.on("leave_channel", (channelId) => {
+            socket.leave(channelId);
+        });
+
         socket.on("send_dm", async ({ conversationId, content }) => {
             const convo = await conversationModel.findById(conversationId);
 
-            if (!convo.members.includes(userId)) {
+            if (!convo.members.some(id => id.toString() === userId)) {
                 throw new Error("Not part of conversation");
             }
             const message = await createMessageService({

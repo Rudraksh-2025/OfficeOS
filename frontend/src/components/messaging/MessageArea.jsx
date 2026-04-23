@@ -17,18 +17,15 @@ const MessageList = ({ channelId }) => {
 
         const handleMessage = (msg) => {
             if (msg.channelId === channelId) {
-                queryClient.setQueryData(
-                    ["getMessages", channelId],
+                queryClient.setQueryData(["getMessages", channelId],
                     (old = []) => {
                         if (!Array.isArray(old)) return old;
 
-                        // remove optimistic message if exists
-                        console.log(old)
-                        const filtered = old.filter(m => !m.optimistic);
+                        const filtered = old.filter(
+                            m => m.tempId !== msg.tempId
+                        );
 
-                        // prevent duplicates
                         if (filtered.find(m => m._id === msg._id)) return filtered;
-                        console.log(filtered)
 
                         return [...filtered, msg];
                     }

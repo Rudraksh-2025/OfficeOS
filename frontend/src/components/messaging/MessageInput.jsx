@@ -19,6 +19,7 @@ const MessageInput = ({ channelId }) => {
         const tempId = `temp-${Date.now()}`;
         const tempMessage = {
             _id: tempId,
+            tempId,
             content: text,
             channelId,
             optimistic: true,
@@ -39,6 +40,7 @@ const MessageInput = ({ channelId }) => {
         getSocket().emit("send_message", {
             channelId,
             content: text,
+            tempId
         });
 
         setText("");
