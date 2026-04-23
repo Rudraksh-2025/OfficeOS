@@ -10,6 +10,9 @@ const MessageInput = ({ channelId }) => {
     const [text, setText] = useState("");
     const queryClient = useQueryClient();
 
+    const currentUserId = localStorage.getItem("userId");
+    const currentUserName = localStorage.getItem("name");
+
     const sendMessage = () => {
         if (!text.trim()) return;
 
@@ -19,7 +22,12 @@ const MessageInput = ({ channelId }) => {
             content: text,
             channelId,
             optimistic: true,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+
+            senderId: {
+                _id: currentUserId,
+                name: currentUserName
+            }
         };
 
         // Optimistic UI

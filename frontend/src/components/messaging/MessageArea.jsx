@@ -11,6 +11,7 @@ import { useGetMessages } from '../../Api/Api';
 const MessageList = ({ channelId }) => {
     const queryClient = useQueryClient();
 
+
     useEffect(() => {
         const socket = getSocket();
 
@@ -18,27 +19,18 @@ const MessageList = ({ channelId }) => {
             if (msg.channelId === channelId) {
                 queryClient.setQueryData(
                     ["getMessages", channelId],
-                    (old = { pages: [] }) => {
-                        // Assuming pagination wrapper (Infinite Query)
-                        if (!old || !old.pages) return old;
+                    (old = []) => {
+                        if (!Array.isArray(old)) return old;
 
-                        // We will mutate the first page
-                        const firstPage = old.pages[0];
-                        if (firstPage && firstPage.results) {
-                            if (firstPage.results.find((m) => m._id === msg._id)) return old;
-                            return {
-                                ...old,
-                                pages: [
-                                    { ...firstPage, results: [...firstPage.results, msg] },
-                                    ...old.pages.slice(1)
-                                ]
-                            };
-                        } else {
-                            // Non infinite query fallback
-                            const oldArr = Array.isArray(old) ? old : [];
-                            if (oldArr.find((m) => m._id === msg._id)) return old;
-                            return [...oldArr, msg];
-                        }
+                        // remove optimistic message if exists
+                        console.log(old)
+                        const filtered = old.filter(m => !m.optimistic);
+
+                        // prevent duplicates
+                        if (filtered.find(m => m._id === msg._id)) return filtered;
+                        console.log(filtered)
+
+                        return [...filtered, msg];
                     }
                 );
             }
@@ -53,9 +45,9 @@ const MessageList = ({ channelId }) => {
 };
 
 const MessageArea = ({ channelId }) => {
-    // Note: useGetMessages was created in Api.jsx
     const { data: messagesData, isLoading } = useGetMessages(channelId, { enabled: !!channelId });
     const scrollRef = useRef();
+    const currentUserId = localStorage.getItem("userId");
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -80,6 +72,8 @@ const MessageArea = ({ channelId }) => {
     // fallback for empty display
     const finalMessages = messages.length > 0 ? messages : [];
 
+
+
     return (
         <>
             <MessageList channelId={channelId} />
@@ -88,59 +82,74 @@ const MessageArea = ({ channelId }) => {
                 sx={{ flexGrow: 1, overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}
                 className="custom-scroll"
             >
-                {finalMessages.map((msg, i) => (
-                    <Box key={msg._id || msg.id || i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        {msg.edited && (
-                            <Typography sx={{ fontSize: '11px', color: '#A1A1AA', mb: 0.5, mr: 1 }}>Edited</Typography>
-                        )}
+                {finalMessages.map((msg, i) => {
 
-                        {msg.type === 'file' ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Box sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    bgcolor: '#27272A',
-                                    border: '1px solid #3F3F46',
-                                    borderRadius: '12px',
-                                    p: 1.5,
-                                    mr: 1,
-                                    gap: 1.5
-                                }}>
+                    const senderId =
+                        typeof msg.senderId === "object"
+                            ? msg.senderId._id
+                            : msg.senderId;
+                    const isOwnMessage = senderId === currentUserId;
+                    return (
+                        <Box key={msg._id || msg.id || i} sx={{ display: 'flex', flexDirection: 'column', alignItems: isOwnMessage ? 'flex-end' : 'flex-start' }}>
+                            {msg.edited && (
+                                <Typography sx={{ fontSize: '11px', color: '#A1A1AA', mb: 0.5, mr: 1 }}>Edited</Typography>
+                            )}
+                            {!isOwnMessage && (
+                                <Typography sx={{ fontSize: 12, color: '#A1A1AA', pb: 0.5 }}>
+                                    {msg?.senderId?.name || msg?.senderName || "User"}
+                                </Typography>
+                            )}
+
+                            {msg.type === 'file' ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Box sx={{
-                                        bgcolor: '#3F3F46',
-                                        borderRadius: '8px',
-                                        p: '8px',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#E04F26'
+                                        bgcolor: '#27272A',
+                                        border: '1px solid #3F3F46',
+                                        borderRadius: '12px',
+                                        p: 1.5,
+                                        mr: 1,
+                                        gap: 1.5
                                     }}>
-                                        <AttachFileOutlinedIcon />
+                                        <Box sx={{
+                                            bgcolor: '#3F3F46',
+                                            borderRadius: '8px',
+                                            p: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#E04F26'
+                                        }}>
+                                            <AttachFileOutlinedIcon />
+                                        </Box>
+                                        <Typography sx={{ color: '#FFF', fontSize: '14px', fontWeight: 600 }}>
+                                            {msg.filename || "Attachment"}
+                                        </Typography>
+                                        <IconButton size="small" sx={{ color: '#A1A1AA', ml: 1 }}>
+                                            <MoreHorizIcon fontSize="small" />
+                                        </IconButton>
                                     </Box>
-                                    <Typography sx={{ color: '#FFF', fontSize: '14px', fontWeight: 600 }}>
-                                        {msg.filename || "Attachment"}
-                                    </Typography>
-                                    <IconButton size="small" sx={{ color: '#A1A1AA', ml: 1 }}>
-                                        <MoreHorizIcon fontSize="small" />
-                                    </IconButton>
+                                    <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid #6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#6366F1' }} />
+                                    </Box>
                                 </Box>
-                                <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: '1px solid #6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#6366F1' }} />
-                                </Box>
-                            </Box>
-                        ) : (
-                            <MessageBubble>
-                                {msg.content}
-                            </MessageBubble>
-                        )}
+                            ) : (
+                                <MessageBubble isOwnMessage={isOwnMessage}>
+                                    {msg.content}
+                                </MessageBubble>
+                            )}
 
-                        {(msg.time || msg.createdAt) && (
-                            <Typography sx={{ fontSize: '11px', color: '#71717A', mt: 0.5, mr: 1 }}>
-                                {msg.time || new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </Typography>
-                        )}
-                    </Box>
-                ))}
+
+                            {(msg.time || msg.createdAt) && (
+                                <Typography sx={{ fontSize: '11px', color: '#71717A', mt: 0.5, mr: 1 }}>
+                                    {msg.time || new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Typography>
+                            )}
+                        </Box>
+                    )
+                })
+                }
             </Box>
         </>
     )
@@ -148,8 +157,8 @@ const MessageArea = ({ channelId }) => {
 
 export default MessageArea;
 
-const MessageBubble = styled(Box)(({ theme }) => ({
-    backgroundColor: '#7C3AED', // Purple like the screenshot
+const MessageBubble = styled(Box)(({ theme, isOwnMessage }) => ({
+    backgroundColor: isOwnMessage ? '#7C3AED' : '#3F3F46',
     color: '#FFF',
     padding: '12px 16px',
     borderRadius: '16px',

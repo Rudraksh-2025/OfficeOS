@@ -59,6 +59,7 @@ const Register = () => {
         localStorage.setItem("token", res.token);
         localStorage.setItem("user", JSON.stringify(res?.user));
         localStorage.setItem("userId", res?.user?._id);
+        localStorage.setItem("name", res?.user?.name);
         navigate("/home");
     };
 

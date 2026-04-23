@@ -27,11 +27,11 @@ const Login = () => {
 
     });
     const onSuccess = (res) => {
-        const user = res?.data?.user;
+        localStorage.setItem("token", res?.token);
+        localStorage.setItem("user", JSON.stringify(res?.user));
+        localStorage.setItem("userId", res?.user?._id);
+        localStorage.setItem("name", res?.user?.name);
 
-        localStorage.setItem("token", res?.data?.authToken?.access?.token);
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("userId", user?._id);
 
         toast.success("Login Successfully");
         navigate("/home");
@@ -46,6 +46,7 @@ const Login = () => {
         localStorage.setItem("token", res?.token);
         localStorage.setItem("user", JSON.stringify(res?.user));
         localStorage.setItem("userId", res?.user?._id);
+        localStorage.setItem("name", res?.user?.name);
         toast.success("Login Successfully");
         navigate("/home");
     };

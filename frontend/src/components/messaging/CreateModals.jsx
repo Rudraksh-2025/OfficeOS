@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { useAddChannel, useCreateGroup, useCreateDm } from '../../Api/Api';
+import { toast } from 'sonner';
 
 export const CreateChannelModal = ({ open, onClose, onSuccess }) => {
     const [name, setName] = useState('');
@@ -10,19 +11,22 @@ export const CreateChannelModal = ({ open, onClose, onSuccess }) => {
             onSuccess();
             onClose();
         },
-        (err) => console.error(err)
+        (err) => {
+            toast.error(err.message)
+            console.error(err)
+        }
     );
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>Create New Channel</DialogTitle>
             <DialogContent>
-                <TextField 
-                    fullWidth 
-                    label="Channel Name" 
-                    value={name} 
-                    onChange={e => setName(e.target.value)} 
-                    margin="normal" 
+                <TextField
+                    fullWidth
+                    label="Channel Name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    margin="normal"
                 />
                 <FormControl fullWidth margin="normal">
                     <InputLabel>Type</InputLabel>
@@ -55,19 +59,19 @@ export const CreateGroupModal = ({ open, onClose, onSuccess }) => {
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>Create New Group</DialogTitle>
             <DialogContent>
-                <TextField 
-                    fullWidth 
-                    label="Group Name" 
-                    value={name} 
-                    onChange={e => setName(e.target.value)} 
-                    margin="normal" 
+                <TextField
+                    fullWidth
+                    label="Group Name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    margin="normal"
                 />
-                <TextField 
-                    fullWidth 
-                    label="Member User IDs (comma separated)" 
-                    value={membersInput} 
-                    onChange={e => setMembersInput(e.target.value)} 
-                    margin="normal" 
+                <TextField
+                    fullWidth
+                    label="Member User IDs (comma separated)"
+                    value={membersInput}
+                    onChange={e => setMembersInput(e.target.value)}
+                    margin="normal"
                     helperText="Enter valid user IDs separated by commas"
                 />
             </DialogContent>
@@ -96,12 +100,12 @@ export const CreateDmModal = ({ open, onClose, onSuccess }) => {
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <DialogTitle>Start Direct Message</DialogTitle>
             <DialogContent>
-                <TextField 
-                    fullWidth 
-                    label="Target User ID" 
-                    value={userId} 
-                    onChange={e => setUserId(e.target.value)} 
-                    margin="normal" 
+                <TextField
+                    fullWidth
+                    label="Target User ID"
+                    value={userId}
+                    onChange={e => setUserId(e.target.value)}
+                    margin="normal"
                     helperText="Enter the valid user ID of the person you want to message"
                 />
             </DialogContent>

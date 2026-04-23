@@ -44,12 +44,6 @@ export const initSocket = (server) => {
 
         io.emit("presence_update", getOnlineUsers());
 
-
-        // Join channel
-        socket.on("join_channel", (channelId) => {
-            socket.join(channelId);
-        });
-
         // Send message
         socket.on("send_message", async (data) => {
             try {
@@ -77,9 +71,16 @@ export const initSocket = (server) => {
         socket.on("join_channel", async (channelId) => {
             const channel = await channelModel.findById(channelId);
 
-            if (!channel.memberIds.includes(userId)) {
-                throw new Error("Not a member of channel");
+            if (!channel) return;
+
+            // 🔥 KEY FIX
+            if (channel.type === "PRIVATE") {
+                if (!channel.memberIds.includes(userId)) {
+                    return socket.emit("error", "Not a member of private channel");
+                }
             }
+
+            // PUBLIC → no restriction
             socket.join(channelId);
         });
 
