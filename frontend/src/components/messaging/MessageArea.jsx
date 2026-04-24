@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "../../services/socket";
 import { Box, Typography, IconButton } from '@mui/material';
@@ -10,7 +10,6 @@ import { useGetMessages } from '../../Api/Api';
 
 const MessageList = ({ channelId }) => {
     const queryClient = useQueryClient();
-
 
     useEffect(() => {
         const socket = getSocket();
@@ -38,10 +37,12 @@ const MessageList = ({ channelId }) => {
         return () => socket.off("receive_message", handleMessage);
     }, [channelId, queryClient]);
 
+
     return null;
 };
 
 const MessageArea = ({ channelId }) => {
+    const [typingUsers, setTypingUsers] = useState([]);
     const { data: messagesData, isLoading } = useGetMessages(channelId, { enabled: !!channelId });
     const scrollRef = useRef();
     const currentUserId = localStorage.getItem("userId");
@@ -51,6 +52,30 @@ const MessageArea = ({ channelId }) => {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messagesData]);
+    useEffect(() => {
+        const socket = getSocket();
+
+        const handleTypingStart = ({ userId }) => {
+            setTypingUsers((prev) => {
+                if (prev.includes(userId)) return prev;
+                return [...prev, userId];
+            });
+        };
+
+        const handleTypingStop = ({ userId }) => {
+            setTypingUsers((prev) =>
+                prev.filter((id) => id !== userId)
+            );
+        };
+
+        socket.on("typing_start", handleTypingStart);
+        socket.on("typing_stop", handleTypingStop);
+
+        return () => {
+            socket.off("typing_start", handleTypingStart);
+            socket.off("typing_stop", handleTypingStop);
+        };
+    }, [channelId]);
 
     let messages = [];
     if (messagesData) {
@@ -143,11 +168,20 @@ const MessageArea = ({ channelId }) => {
                                     {msg.time || new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Typography>
                             )}
+
                         </Box>
+
                     )
                 })
                 }
             </Box>
+            {typingUsers.length > 0 && (
+                <Typography sx={{ fontSize: 12, pl: 2, color: '#A1A1AA' }}>
+                    {typingUsers.length === 1
+                        ? "Someone is typing..."
+                        : `${typingUsers.length} people are typing...`}
+                </Typography>
+            )}
         </>
     )
 }

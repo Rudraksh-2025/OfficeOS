@@ -46,6 +46,20 @@ const MessageInput = ({ channelId }) => {
         setText("");
     };
 
+    const handleTyping = (value) => {
+        setText(value);
+
+        const socket = getSocket();
+        socket.emit("typing_start", { channelId });
+
+        // debounce stop typing
+        if (window.typingTimeout) clearTimeout(window.typingTimeout);
+
+        window.typingTimeout = setTimeout(() => {
+            socket.emit("typing_stop", { channelId });
+        }, 1000);
+    };
+
     return (
         <Box sx={{ p: 3, pt: 1 }}>
             <Box sx={{
@@ -62,8 +76,10 @@ const MessageInput = ({ channelId }) => {
                 <InputBase
                     placeholder="Type a message"
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    onChange={(e) => handleTyping(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') sendMessage();
+                    }}
                     sx={{ flexGrow: 1, color: '#F4F4F5', p: 1, fontSize: '15px' }}
                 />
                 <Box sx={{ display: 'flex', color: '#A1A1AA', alignItems: 'center' }}>
