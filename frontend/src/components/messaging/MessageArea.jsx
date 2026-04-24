@@ -10,6 +10,7 @@ import { useGetMessages } from '../../Api/Api';
 
 const MessageList = ({ channelId }) => {
     const queryClient = useQueryClient();
+    const currentUserId = localStorage.getItem("userId");
 
     useEffect(() => {
         const socket = getSocket();
@@ -30,6 +31,61 @@ const MessageList = ({ channelId }) => {
                     }
                 );
             }
+
+            queryClient.setQueryData(["getChanel"], (old = []) => {
+                if (!Array.isArray(old)) return old;
+
+                const updated = old.map((channel) => {
+                    if (channelId !== msg.channelId) return channel;
+
+                    const senderId =
+                        typeof msg.senderId === "object"
+                            ? msg.senderId._id
+                            : msg.senderId;
+
+                    const isOwn = senderId === currentUserId;
+
+                    return {
+                        ...channel,
+                        lastMessage: {
+                            content: msg.content,
+                            senderName: isOwn ? "You" : msg.senderId?.name,
+                            createdAt: msg.createdAt,
+                        },
+                    };
+                });
+
+                // move active channel to top
+                return updated.sort((a, b) => {
+                    const aTime = new Date(a.lastMessage?.createdAt || 0);
+                    const bTime = new Date(b.lastMessage?.createdAt || 0);
+                    return bTime - aTime;
+                });
+            });
+
+            queryClient.setQueryData(["getConversation"], (old = []) => {
+                if (!Array.isArray(old)) return old;
+
+                return old.map((convo) => {
+                    if (convo._id !== msg.conversationId) return convo;
+
+                    const senderId =
+                        typeof msg.senderId === "object"
+                            ? msg.senderId._id
+                            : msg.senderId;
+
+                    const isOwn = senderId === currentUserId;
+
+                    return {
+                        ...convo,
+                        lastMessage: {
+                            content: msg.content,
+                            senderName: isOwn ? "You" : msg.senderId?.name,
+                            createdAt: msg.createdAt,
+                        },
+                    };
+                });
+            });
         };
 
         socket.on("receive_message", handleMessage);

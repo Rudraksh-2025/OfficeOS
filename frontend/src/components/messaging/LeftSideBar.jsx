@@ -75,6 +75,7 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
                 <Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         {allChats.map((chat) => {
+                            console.log(chat)
                             const isActive = currentChannel?._id === chat._id;
                             const name = chat.name || "Direct Message";
 
@@ -93,7 +94,11 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
                                             {name}
                                         </Typography>
                                         <Typography sx={{ fontSize: 12, color: '#A1A1AA', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                            {chat.lastMessage?.content || "No messages"}
+                                            {chat.lastMessage
+                                                ? chat.type === "DIRECT"
+                                                    ? chat.lastMessage.content
+                                                    : `${chat.lastMessage.senderName}: ${chat.lastMessage.content}`
+                                                : "No messages"}
                                         </Typography>
                                     </Box>
                                 </ChatListItem>

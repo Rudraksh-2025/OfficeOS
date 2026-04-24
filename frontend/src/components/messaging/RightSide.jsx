@@ -29,7 +29,14 @@ const RightSide = ({ isMobile, toggleDrawer, currentChannel }) => {
 
     if (!channelId && !currentChannel?.id) {
         return (
-            <ChatArea sx={{ alignItems: 'center', justifyContent: 'center' }}>
+            <ChatArea sx={{ alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                {isMobile && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', p: 1, position: 'absolute', top: 0, left: 0 }}>
+                        <IconButton onClick={toggleDrawer} sx={{ color: '#fff' }}>
+                            <MenuIcon />
+                        </IconButton>
+                    </Box>
+                )}
                 <Typography sx={{ color: '#A1A1AA' }}>Select a chat to start messaging</Typography>
             </ChatArea>
         );

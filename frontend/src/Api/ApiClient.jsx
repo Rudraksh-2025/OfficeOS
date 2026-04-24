@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
         else if (
             error.response &&
             error.response.data &&
-            error.response.data.code === 401
+            error.response.data.message === "Invalid token"
         ) {
             // Clear auth data
             localStorage.removeItem("token");
