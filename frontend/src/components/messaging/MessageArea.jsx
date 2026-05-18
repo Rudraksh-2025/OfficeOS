@@ -14,7 +14,6 @@ const MessageList = ({ channelId }) => {
 
     useEffect(() => {
         const socket = getSocket();
-
         const handleMessage = (msg) => {
             if (msg.channelId === channelId) {
                 queryClient.setQueryData(["getMessages", channelId],
@@ -36,7 +35,7 @@ const MessageList = ({ channelId }) => {
                 if (!Array.isArray(old)) return old;
 
                 const updated = old.map((channel) => {
-                    if (channelId !== msg.channelId) return channel;
+                    if (channel._id !== msg.channelId) return channel;
 
                     const senderId =
                         typeof msg.senderId === "object"
@@ -66,8 +65,8 @@ const MessageList = ({ channelId }) => {
             queryClient.setQueryData(["getConversation"], (old = []) => {
                 if (!Array.isArray(old)) return old;
 
-                return old.map((convo) => {
-                    if (convo._id !== msg.conversationId) return convo;
+                const updated = old.map((convo) => {
+                    if (convo._id !== (msg.conversationId || msg.channelId)) return convo;
 
                     const senderId =
                         typeof msg.senderId === "object"
@@ -84,6 +83,11 @@ const MessageList = ({ channelId }) => {
                             createdAt: msg.createdAt,
                         },
                     };
+                });
+                return updated.sort((a, b) => {
+                    const aTime = new Date(a.lastMessage?.createdAt || 0);
+                    const bTime = new Date(b.lastMessage?.createdAt || 0);
+                    return bTime - aTime;
                 });
             });
         };
@@ -111,21 +115,25 @@ const MessageArea = ({ channelId }) => {
     useEffect(() => {
         const socket = getSocket();
 
-        const handleTypingStart = ({ userId }) => {
+        const handleTypingStart = ({ userId, channelId: incomingChannelId, name }) => {
+            if (incomingChannelId !== channelId) return;
+
             setTypingUsers((prev) => {
-                if (prev.includes(userId)) return prev;
-                return [...prev, userId];
+                if (prev.some((u) => u.userId === userId)) return prev;
+                return [...prev, { userId, name }];
             });
         };
 
-        const handleTypingStop = ({ userId }) => {
-            setTypingUsers((prev) =>
-                prev.filter((id) => id !== userId)
-            );
+        const handleTypingStop = ({ userId, channelId: incomingChannelId }) => {
+            if (incomingChannelId !== channelId) return;
+
+            setTypingUsers((prev) => prev.filter((u) => u.userId !== userId));
         };
 
         socket.on("typing_start", handleTypingStart);
         socket.on("typing_stop", handleTypingStop);
+
+        setTypingUsers([]);
 
         return () => {
             socket.off("typing_start", handleTypingStart);
@@ -234,8 +242,10 @@ const MessageArea = ({ channelId }) => {
             {typingUsers.length > 0 && (
                 <Typography sx={{ fontSize: 12, pl: 2, color: '#A1A1AA' }}>
                     {typingUsers.length === 1
-                        ? "Someone is typing..."
-                        : `${typingUsers.length} people are typing...`}
+                        ? `${typingUsers[0].name} is typing...`
+                        : typingUsers.length === 2
+                            ? `${typingUsers[0].name} and ${typingUsers[1].name} are typing...`
+                            : `${typingUsers[0].name} and ${typingUsers.length - 1} others are typing...`}
                 </Typography>
             )}
         </>

@@ -102,6 +102,20 @@ export const useGetMessages = (channelId) => {
     });
 };
 
+
+
+// Api/Api.js
+export const useGetWorkspaceUsers = () => {
+    return useQuery({
+        queryKey: ["workspaceUsers"],
+        queryFn: async () => {
+            const { data } = await apiClient.get("/users");
+            return data;
+        },
+        staleTime: 1000 * 60 * 10,
+    });
+};
+
 // login
 export const useLogin = (onSuccess, onError) => {
     return useMutation({
