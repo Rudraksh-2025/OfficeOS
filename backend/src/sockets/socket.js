@@ -8,6 +8,8 @@ import {
 } from "./presense.js";
 import conversationModel from "../models/conversation.model.js";
 import channelModel from "../models/channel.model.js";
+import { setIO } from "./socketInstance.js";
+import userModel from "../models/user.model.js";
 
 import {
     startTyping,
@@ -20,6 +22,7 @@ export const initSocket = (server) => {
             origin: "*",
         },
     });
+    setIO(io);
 
     // 🔐 Auth middleware for socket
     io.use((socket, next) => {
@@ -36,9 +39,11 @@ export const initSocket = (server) => {
     });
 
     io.on("connection", (socket) => {
+        const typingTimers = new Map();
         console.log("User connected:", socket.user.userId);
 
         const userId = socket.user.userId;
+        socket.join(userId);
 
         addUser(userId, socket.id);
 
@@ -77,7 +82,7 @@ export const initSocket = (server) => {
                 // Check if it's a conversation
                 const convo = await conversationModel.findById(channelId);
                 if (!convo) return;
-                
+
                 if (!convo.members.some(id => id.toString() === userId)) {
                     return socket.emit("error", "Not a member of conversation");
                 }
@@ -129,35 +134,52 @@ export const initSocket = (server) => {
                 socket.emit("error", err.message);
             }
         });
-        socket.on("typing_start", ({ channelId }) => {
-            startTyping(channelId, userId);
+        socket.on("typing_start", async ({ channelId }) => {
+            const isAlreadyTyping = typingTimers.has(userId);
 
-            socket.to(channelId).emit("typing_start", {
-                userId,
-                channelId,
-            });
+            // Clear existing timer
+            if (typingTimers.has(userId)) {
+                clearTimeout(typingTimers.get(userId));
+            }
 
-            // Auto stop after 3s (failsafe)
-            setTimeout(() => {
-                stopTyping(channelId, userId);
-                socket.to(channelId).emit("typing_stop", {
+            // Only fetch user + emit typing_start if not already typing
+            if (!isAlreadyTyping) {
+                const user = await userModel.findById(userId).select("name");
+                startTyping(channelId, userId);
+
+                socket.to(channelId).emit("typing_start", {
                     userId,
                     channelId,
+                    name: user.name,
                 });
+            }
+
+            // Reset the 3s failsafe timer
+            const timer = setTimeout(() => {
+                stopTyping(channelId, userId);
+                typingTimers.delete(userId);
+                socket.to(channelId).emit("typing_stop", { userId, channelId });
             }, 3000);
+
+            typingTimers.set(userId, timer);
         });
 
         socket.on("typing_stop", ({ channelId }) => {
-            stopTyping(channelId, userId);
+            if (typingTimers.has(userId)) {
+                clearTimeout(typingTimers.get(userId));
+                typingTimers.delete(userId);
+            }
 
-            socket.to(channelId).emit("typing_stop", {
-                userId,
-                channelId,
-            });
+            stopTyping(channelId, userId);
+            socket.to(channelId).emit("typing_stop", { userId, channelId });
         });
 
         socket.on("disconnect", () => {
             console.log("User disconnected");
+            if (typingTimers.has(userId)) {
+                clearTimeout(typingTimers.get(userId));
+                typingTimers.delete(userId);
+            }
             removeUser(userId, socket.id);
             io.emit("presence_update", getOnlineUsers());
         });

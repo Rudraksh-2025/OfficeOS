@@ -4,6 +4,7 @@ export const startTyping = (channelId, userId) => {
     if (!typingUsers.has(channelId)) {
         typingUsers.set(channelId, new Set());
     }
+    console.log(typingUsers)
     typingUsers.get(channelId).add(userId);
 };
 

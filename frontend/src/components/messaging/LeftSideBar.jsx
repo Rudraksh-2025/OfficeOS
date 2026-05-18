@@ -5,28 +5,52 @@ import {
 } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { styled } from '@mui/material/styles';
-import { joinChannel, leaveChannel } from "../../services/socket";
+import { joinChannel, leaveChannel, getSocket } from "../../services/socket";
 import { useGetChannel, useGetConversation } from "../../Api/Api";
 import { useQueryClient } from "@tanstack/react-query";
 import { CreateChannelModal, CreateGroupModal, CreateDmModal } from "./CreateModals";
 
 const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
     const { data: channels = [] } = useGetChannel();
-    const { data: conversations = [] } = useGetConversation(); // Will likely need this based on API structure
+    const [typingMap, setTypingMap] = useState({});
+    const { data: conversations = [] } = useGetConversation();
     const queryClient = useQueryClient();
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [createType, setCreateType] = useState(null); // 'CHANNEL', 'GROUP', 'DM'
 
     useEffect(() => {
-        if (!currentChannel) return;
-
-        joinChannel(currentChannel._id);
-
-        return () => {
-            leaveChannel(currentChannel._id);
-        };
+        if (currentChannel) {
+            joinChannel(currentChannel._id);
+        }
     }, [currentChannel]);
+
+    useEffect(() => {
+        const allChats = [...(Array.isArray(channels) ? channels : []), ...(Array.isArray(conversations) ? conversations : [])];
+        allChats.forEach((chat) => {
+            if (chat && chat._id) {
+                joinChannel(chat._id);
+            }
+        });
+    }, [channels, conversations]);
+
+    useEffect(() => {
+        const socket = getSocket();
+
+        const handleNewConversation = (convo) => {
+            queryClient.setQueryData(["getConversation"], (old = []) => {
+                if (!Array.isArray(old)) return [convo];
+                // avoid duplicates
+                if (old.find(c => c._id === convo._id)) return old;
+
+                return [convo, ...old]; // add on top
+            });
+        };
+
+        socket.on("new_conversation", handleNewConversation);
+
+        return () => socket.off("new_conversation", handleNewConversation);
+    }, []);
 
     const handleCreateClick = (event) => setAnchorEl(event.currentTarget);
     const handleCloseMenu = () => setAnchorEl(null);
@@ -42,6 +66,35 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
     };
 
     const allChats = [...(Array.isArray(channels) ? channels : []), ...(Array.isArray(conversations) ? conversations : [])];
+
+
+    useEffect(() => {
+        const socket = getSocket();
+
+        const handleTypingStart = ({ userId, channelId, name }) => {
+            setTypingMap((prev) => {
+                const existing = prev[channelId] ?? [];
+                if (existing.some((u) => u.userId === userId)) return prev;
+                return { ...prev, [channelId]: [...existing, { userId, name }] };
+            });
+        };
+
+        const handleTypingStop = ({ userId, channelId }) => {
+            setTypingMap((prev) => {
+                const existing = prev[channelId] ?? [];
+                return { ...prev, [channelId]: existing.filter((u) => u.userId !== userId) };
+            });
+        };
+
+        socket.on("typing_start", handleTypingStart);
+        socket.on("typing_stop", handleTypingStop);
+
+        return () => {
+            socket.off("typing_start", handleTypingStart);
+            socket.off("typing_stop", handleTypingStop);
+        };
+    }, []);
+
 
     return (
         <SidebarContainer>
@@ -75,7 +128,6 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
                 <Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         {allChats.map((chat) => {
-                            console.log(chat)
                             const isActive = currentChannel?._id === chat._id;
                             const name = chat.name || "Direct Message";
 
@@ -93,13 +145,32 @@ const LeftSideBar = ({ currentChannel, setCurrentChannel }) => {
                                         <Typography sx={{ fontWeight: isActive ? 700 : 500, color: isActive ? '#FFF' : '#E4E4E7', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                                             {name}
                                         </Typography>
-                                        <Typography sx={{ fontSize: 12, color: '#A1A1AA', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                                            {chat.lastMessage
-                                                ? chat.type === "DIRECT"
-                                                    ? chat.lastMessage.content
-                                                    : `${chat.lastMessage.senderName}: ${chat.lastMessage.content}`
-                                                : "No messages"}
-                                        </Typography>
+                                        {(() => {
+                                            const typingHere = typingMap[chat._id] ?? [];
+
+                                            if (typingHere.length > 0) {
+                                                return (
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', mt: '2px' }}>
+                                                        <TypingBubble />
+                                                        <Typography sx={{ fontSize: 12, color: '#A1A1AA' }}>
+                                                            {typingHere.length === 1
+                                                                ? `${typingHere[0].name} typing`
+                                                                : `${typingHere.length} people typing`}
+                                                        </Typography>
+                                                    </Box>
+                                                );
+                                            }
+
+                                            return (
+                                                <Typography sx={{ fontSize: 12, color: '#A1A1AA', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                    {chat.lastMessage
+                                                        ? chat.type === "DIRECT"
+                                                            ? chat.lastMessage.content
+                                                            : `${chat.lastMessage.senderName}: ${chat.lastMessage.content}`
+                                                        : "No messages"}
+                                                </Typography>
+                                            );
+                                        })()}
                                     </Box>
                                 </ChatListItem>
                             );
@@ -148,3 +219,12 @@ const ChatListItem = styled(Box)(({ active }) => ({
         backgroundColor: '#27272A',
     }
 }));
+
+
+const TypingBubble = () => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+    </Box>
+);
